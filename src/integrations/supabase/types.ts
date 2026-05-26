@@ -14,16 +14,283 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      audit_log: {
+        Row: {
+          action: string
+          created_at: string
+          id: string
+          ip_address: string | null
+          metadata: Json | null
+          target_id: string | null
+          target_type: string | null
+          user_agent: string | null
+          user_id: string | null
+        }
+        Insert: {
+          action: string
+          created_at?: string
+          id?: string
+          ip_address?: string | null
+          metadata?: Json | null
+          target_id?: string | null
+          target_type?: string | null
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          action?: string
+          created_at?: string
+          id?: string
+          ip_address?: string | null
+          metadata?: Json | null
+          target_id?: string | null
+          target_type?: string | null
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
+      profiles: {
+        Row: {
+          account_state: Database["public"]["Enums"]["account_state"] | null
+          avatar_url: string | null
+          bio: string | null
+          chess_rating: number | null
+          created_at: string
+          date_of_birth: string | null
+          email: string
+          full_name: string
+          gender: string | null
+          id: string
+          language: string | null
+          last_active_at: string | null
+          location: string | null
+          member_since: string | null
+          membership_level:
+            | Database["public"]["Enums"]["membership_level"]
+            | null
+          onboarding_completed: boolean | null
+          phone: string | null
+          theme: string | null
+          timezone: string | null
+          updated_at: string
+          visibility: Database["public"]["Enums"]["profile_visibility"] | null
+        }
+        Insert: {
+          account_state?: Database["public"]["Enums"]["account_state"] | null
+          avatar_url?: string | null
+          bio?: string | null
+          chess_rating?: number | null
+          created_at?: string
+          date_of_birth?: string | null
+          email: string
+          full_name: string
+          gender?: string | null
+          id: string
+          language?: string | null
+          last_active_at?: string | null
+          location?: string | null
+          member_since?: string | null
+          membership_level?:
+            | Database["public"]["Enums"]["membership_level"]
+            | null
+          onboarding_completed?: boolean | null
+          phone?: string | null
+          theme?: string | null
+          timezone?: string | null
+          updated_at?: string
+          visibility?: Database["public"]["Enums"]["profile_visibility"] | null
+        }
+        Update: {
+          account_state?: Database["public"]["Enums"]["account_state"] | null
+          avatar_url?: string | null
+          bio?: string | null
+          chess_rating?: number | null
+          created_at?: string
+          date_of_birth?: string | null
+          email?: string
+          full_name?: string
+          gender?: string | null
+          id?: string
+          language?: string | null
+          last_active_at?: string | null
+          location?: string | null
+          member_since?: string | null
+          membership_level?:
+            | Database["public"]["Enums"]["membership_level"]
+            | null
+          onboarding_completed?: boolean | null
+          phone?: string | null
+          theme?: string | null
+          timezone?: string | null
+          updated_at?: string
+          visibility?: Database["public"]["Enums"]["profile_visibility"] | null
+        }
+        Relationships: []
+      }
+      school_memberships: {
+        Row: {
+          cohort: string | null
+          id: string
+          joined_at: string
+          role_in_school: string
+          school_id: string
+          user_id: string
+        }
+        Insert: {
+          cohort?: string | null
+          id?: string
+          joined_at?: string
+          role_in_school?: string
+          school_id: string
+          user_id: string
+        }
+        Update: {
+          cohort?: string | null
+          id?: string
+          joined_at?: string
+          role_in_school?: string
+          school_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "school_memberships_school_id_fkey"
+            columns: ["school_id"]
+            isOneToOne: false
+            referencedRelation: "schools"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      schools: {
+        Row: {
+          address: string | null
+          contact_email: string | null
+          contact_person: string | null
+          contact_phone: string | null
+          created_at: string
+          id: string
+          is_suspended: boolean | null
+          name: string
+          owner_user_id: string | null
+          program_tier:
+            | Database["public"]["Enums"]["school_program_tier"]
+            | null
+          subscription_expires_at: string | null
+          subscription_started_at: string | null
+          subscription_status:
+            | Database["public"]["Enums"]["subscription_status"]
+            | null
+          suspended_reason: string | null
+          updated_at: string
+        }
+        Insert: {
+          address?: string | null
+          contact_email?: string | null
+          contact_person?: string | null
+          contact_phone?: string | null
+          created_at?: string
+          id?: string
+          is_suspended?: boolean | null
+          name: string
+          owner_user_id?: string | null
+          program_tier?:
+            | Database["public"]["Enums"]["school_program_tier"]
+            | null
+          subscription_expires_at?: string | null
+          subscription_started_at?: string | null
+          subscription_status?:
+            | Database["public"]["Enums"]["subscription_status"]
+            | null
+          suspended_reason?: string | null
+          updated_at?: string
+        }
+        Update: {
+          address?: string | null
+          contact_email?: string | null
+          contact_person?: string | null
+          contact_phone?: string | null
+          created_at?: string
+          id?: string
+          is_suspended?: boolean | null
+          name?: string
+          owner_user_id?: string | null
+          program_tier?:
+            | Database["public"]["Enums"]["school_program_tier"]
+            | null
+          subscription_expires_at?: string | null
+          subscription_started_at?: string | null
+          subscription_status?:
+            | Database["public"]["Enums"]["subscription_status"]
+            | null
+          suspended_reason?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      user_roles: {
+        Row: {
+          assigned_at: string
+          assigned_by: string | null
+          id: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Insert: {
+          assigned_at?: string
+          assigned_by?: string | null
+          id?: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Update: {
+          assigned_at?: string
+          assigned_by?: string | null
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      get_user_roles: {
+        Args: { _user_id: string }
+        Returns: Database["public"]["Enums"]["app_role"][]
+      }
+      has_role: {
+        Args: {
+          _role: Database["public"]["Enums"]["app_role"]
+          _user_id: string
+        }
+        Returns: boolean
+      }
+      is_school_member: {
+        Args: { _school_id: string; _user_id: string }
+        Returns: boolean
+      }
     }
     Enums: {
-      [_ in never]: never
+      account_state:
+        | "unverified"
+        | "pending_payment"
+        | "active"
+        | "expired"
+        | "suspended"
+      app_role: "super_admin" | "school_admin" | "tutor" | "member"
+      membership_level: "beginner" | "intermediate" | "advanced"
+      profile_visibility: "members_only" | "public"
+      school_program_tier: "starter" | "standard" | "premium"
+      subscription_status:
+        | "none"
+        | "pending"
+        | "active"
+        | "expired"
+        | "cancelled"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -150,6 +417,25 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      account_state: [
+        "unverified",
+        "pending_payment",
+        "active",
+        "expired",
+        "suspended",
+      ],
+      app_role: ["super_admin", "school_admin", "tutor", "member"],
+      membership_level: ["beginner", "intermediate", "advanced"],
+      profile_visibility: ["members_only", "public"],
+      school_program_tier: ["starter", "standard", "premium"],
+      subscription_status: [
+        "none",
+        "pending",
+        "active",
+        "expired",
+        "cancelled",
+      ],
+    },
   },
 } as const

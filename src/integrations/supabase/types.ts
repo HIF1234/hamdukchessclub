@@ -50,11 +50,119 @@ export type Database = {
         }
         Relationships: []
       }
+      payments: {
+        Row: {
+          amount_kobo: number
+          authorization_url: string | null
+          created_at: string
+          currency: string
+          id: string
+          paid_at: string | null
+          plan_id: string
+          raw: Json | null
+          reference: string
+          school_id: string | null
+          status: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          amount_kobo: number
+          authorization_url?: string | null
+          created_at?: string
+          currency?: string
+          id?: string
+          paid_at?: string | null
+          plan_id: string
+          raw?: Json | null
+          reference: string
+          school_id?: string | null
+          status?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          amount_kobo?: number
+          authorization_url?: string | null
+          created_at?: string
+          currency?: string
+          id?: string
+          paid_at?: string | null
+          plan_id?: string
+          raw?: Json | null
+          reference?: string
+          school_id?: string | null
+          status?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "payments_plan_id_fkey"
+            columns: ["plan_id"]
+            isOneToOne: false
+            referencedRelation: "plans"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      plans: {
+        Row: {
+          audience: string
+          created_at: string
+          currency: string
+          description: string | null
+          features: Json
+          id: string
+          interval: string
+          is_active: boolean
+          name: string
+          price_kobo: number
+          slug: string
+          sort_order: number
+          tier: string
+          updated_at: string
+        }
+        Insert: {
+          audience: string
+          created_at?: string
+          currency?: string
+          description?: string | null
+          features?: Json
+          id?: string
+          interval?: string
+          is_active?: boolean
+          name: string
+          price_kobo: number
+          slug: string
+          sort_order?: number
+          tier: string
+          updated_at?: string
+        }
+        Update: {
+          audience?: string
+          created_at?: string
+          currency?: string
+          description?: string | null
+          features?: Json
+          id?: string
+          interval?: string
+          is_active?: boolean
+          name?: string
+          price_kobo?: number
+          slug?: string
+          sort_order?: number
+          tier?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           account_state: Database["public"]["Enums"]["account_state"] | null
           avatar_url: string | null
           bio: string | null
+          chess_goals: string | null
           chess_rating: number | null
           created_at: string
           date_of_birth: string | null
@@ -66,11 +174,14 @@ export type Database = {
           last_active_at: string | null
           location: string | null
           member_since: string | null
+          membership_expires_at: string | null
           membership_level:
             | Database["public"]["Enums"]["membership_level"]
             | null
           onboarding_completed: boolean | null
+          onboarding_step: number
           phone: string | null
+          selected_plan_id: string | null
           theme: string | null
           timezone: string | null
           updated_at: string
@@ -80,6 +191,7 @@ export type Database = {
           account_state?: Database["public"]["Enums"]["account_state"] | null
           avatar_url?: string | null
           bio?: string | null
+          chess_goals?: string | null
           chess_rating?: number | null
           created_at?: string
           date_of_birth?: string | null
@@ -91,11 +203,14 @@ export type Database = {
           last_active_at?: string | null
           location?: string | null
           member_since?: string | null
+          membership_expires_at?: string | null
           membership_level?:
             | Database["public"]["Enums"]["membership_level"]
             | null
           onboarding_completed?: boolean | null
+          onboarding_step?: number
           phone?: string | null
+          selected_plan_id?: string | null
           theme?: string | null
           timezone?: string | null
           updated_at?: string
@@ -105,6 +220,7 @@ export type Database = {
           account_state?: Database["public"]["Enums"]["account_state"] | null
           avatar_url?: string | null
           bio?: string | null
+          chess_goals?: string | null
           chess_rating?: number | null
           created_at?: string
           date_of_birth?: string | null
@@ -116,17 +232,28 @@ export type Database = {
           last_active_at?: string | null
           location?: string | null
           member_since?: string | null
+          membership_expires_at?: string | null
           membership_level?:
             | Database["public"]["Enums"]["membership_level"]
             | null
           onboarding_completed?: boolean | null
+          onboarding_step?: number
           phone?: string | null
+          selected_plan_id?: string | null
           theme?: string | null
           timezone?: string | null
           updated_at?: string
           visibility?: Database["public"]["Enums"]["profile_visibility"] | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "profiles_selected_plan_id_fkey"
+            columns: ["selected_plan_id"]
+            isOneToOne: false
+            referencedRelation: "plans"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       school_memberships: {
         Row: {
@@ -177,6 +304,8 @@ export type Database = {
           program_tier:
             | Database["public"]["Enums"]["school_program_tier"]
             | null
+          selected_plan_id: string | null
+          student_count: number | null
           subscription_expires_at: string | null
           subscription_started_at: string | null
           subscription_status:
@@ -198,6 +327,8 @@ export type Database = {
           program_tier?:
             | Database["public"]["Enums"]["school_program_tier"]
             | null
+          selected_plan_id?: string | null
+          student_count?: number | null
           subscription_expires_at?: string | null
           subscription_started_at?: string | null
           subscription_status?:
@@ -219,6 +350,8 @@ export type Database = {
           program_tier?:
             | Database["public"]["Enums"]["school_program_tier"]
             | null
+          selected_plan_id?: string | null
+          student_count?: number | null
           subscription_expires_at?: string | null
           subscription_started_at?: string | null
           subscription_status?:
@@ -227,7 +360,15 @@ export type Database = {
           suspended_reason?: string | null
           updated_at?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "schools_selected_plan_id_fkey"
+            columns: ["selected_plan_id"]
+            isOneToOne: false
+            referencedRelation: "plans"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       user_roles: {
         Row: {

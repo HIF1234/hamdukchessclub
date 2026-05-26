@@ -82,6 +82,10 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
       { name: "twitter:site", content: "@Lovable" },
+      { name: "twitter:title", content: "Hamduk Chess Club" },
+      { name: "twitter:description", content: "The official members dashboard for Hamduk Chess Club." },
+      { property: "og:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/2c0d49f2-9cf9-41f4-b592-8b17c65a3cf3/id-preview-e3d231de--c19a82c7-095b-4848-a08f-a3e744809d5a.lovable.app-1779782069858.png" },
+      { name: "twitter:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/2c0d49f2-9cf9-41f4-b592-8b17c65a3cf3/id-preview-e3d231de--c19a82c7-095b-4848-a08f-a3e744809d5a.lovable.app-1779782069858.png" },
     ],
     links: [
       {

@@ -11,11 +11,11 @@ type: feature
 4. RBAC route guards (_authenticated + role-based layouts)
 5. Locked-dashboard state for pending_payment / expired
 
-# Phase 2 — Onboarding & Payments
-6. Onboarding wizard (member + school flows)
-7. Paystack integration (server-fn + webhook at /api/public/paystack-webhook)
-8. Plan/pricing config
-9. Account state machine + Paystack auto-unlock
+# Phase 2 — Onboarding & Payments ✓ SHIPPED
+6. ✓ Multi-step onboarding wizard (member 4 steps / school 3 steps)
+7. ✓ Paystack init + verify server fns + /api/public/paystack-webhook (HMAC-SHA512)
+8. ✓ plans + payments tables, 4 seeded plans (member beginner/standard/premium, school starter)
+9. ✓ Locked-state redirects: pending_payment → onboarding → billing → payment/callback → active
 
 # Phase 3 — Role Dashboards
 10. Member dashboard + profile

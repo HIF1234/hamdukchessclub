@@ -73,7 +73,7 @@ export const verifyPayment = createServerFn({ method: "POST" })
     if (verified.status !== "success") {
       await supabaseAdmin
         .from("payments")
-        .update({ status: verified.status === "abandoned" ? "abandoned" : "failed", raw: verified as unknown as Record<string, unknown> })
+        .update({ status: verified.status === "abandoned" ? "abandoned" : "failed", raw: JSON.parse(JSON.stringify(verified)) })
         .eq("reference", data.reference);
       return { success: false, status: verified.status };
     }

@@ -18,6 +18,7 @@ import { Route as AuthenticatedRouteImport } from './routes/_authenticated'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthCallbackRouteImport } from './routes/auth.callback'
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
+import { Route as AuthenticatedBillingRouteImport } from './routes/_authenticated/billing'
 import { Route as ApiPublicPaystackWebhookRouteImport } from './routes/api/public/paystack-webhook'
 
 const VerifyEmailRoute = VerifyEmailRouteImport.update({
@@ -64,6 +65,11 @@ const AuthenticatedDashboardRoute = AuthenticatedDashboardRouteImport.update({
   path: '/dashboard',
   getParentRoute: () => AuthenticatedRoute,
 } as any)
+const AuthenticatedBillingRoute = AuthenticatedBillingRouteImport.update({
+  id: '/billing',
+  path: '/billing',
+  getParentRoute: () => AuthenticatedRoute,
+} as any)
 const ApiPublicPaystackWebhookRoute =
   ApiPublicPaystackWebhookRouteImport.update({
     id: '/api/public/paystack-webhook',
@@ -78,6 +84,7 @@ export interface FileRoutesByFullPath {
   '/reset-password': typeof ResetPasswordRoute
   '/signup': typeof SignupRoute
   '/verify-email': typeof VerifyEmailRoute
+  '/billing': typeof AuthenticatedBillingRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/auth/callback': typeof AuthCallbackRoute
   '/api/public/paystack-webhook': typeof ApiPublicPaystackWebhookRoute
@@ -89,6 +96,7 @@ export interface FileRoutesByTo {
   '/reset-password': typeof ResetPasswordRoute
   '/signup': typeof SignupRoute
   '/verify-email': typeof VerifyEmailRoute
+  '/billing': typeof AuthenticatedBillingRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/auth/callback': typeof AuthCallbackRoute
   '/api/public/paystack-webhook': typeof ApiPublicPaystackWebhookRoute
@@ -102,6 +110,7 @@ export interface FileRoutesById {
   '/reset-password': typeof ResetPasswordRoute
   '/signup': typeof SignupRoute
   '/verify-email': typeof VerifyEmailRoute
+  '/_authenticated/billing': typeof AuthenticatedBillingRoute
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
   '/auth/callback': typeof AuthCallbackRoute
   '/api/public/paystack-webhook': typeof ApiPublicPaystackWebhookRoute
@@ -115,6 +124,7 @@ export interface FileRouteTypes {
     | '/reset-password'
     | '/signup'
     | '/verify-email'
+    | '/billing'
     | '/dashboard'
     | '/auth/callback'
     | '/api/public/paystack-webhook'
@@ -126,6 +136,7 @@ export interface FileRouteTypes {
     | '/reset-password'
     | '/signup'
     | '/verify-email'
+    | '/billing'
     | '/dashboard'
     | '/auth/callback'
     | '/api/public/paystack-webhook'
@@ -138,6 +149,7 @@ export interface FileRouteTypes {
     | '/reset-password'
     | '/signup'
     | '/verify-email'
+    | '/_authenticated/billing'
     | '/_authenticated/dashboard'
     | '/auth/callback'
     | '/api/public/paystack-webhook'
@@ -220,6 +232,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedDashboardRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
+    '/_authenticated/billing': {
+      id: '/_authenticated/billing'
+      path: '/billing'
+      fullPath: '/billing'
+      preLoaderRoute: typeof AuthenticatedBillingRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
     '/api/public/paystack-webhook': {
       id: '/api/public/paystack-webhook'
       path: '/api/public/paystack-webhook'
@@ -231,10 +250,12 @@ declare module '@tanstack/react-router' {
 }
 
 interface AuthenticatedRouteChildren {
+  AuthenticatedBillingRoute: typeof AuthenticatedBillingRoute
   AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
 }
 
 const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
+  AuthenticatedBillingRoute: AuthenticatedBillingRoute,
   AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,
 }
 

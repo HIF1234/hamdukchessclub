@@ -1,4 +1,4 @@
-import { createFileRoute, Outlet, redirect, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, Outlet, redirect, useNavigate, useLocation } from "@tanstack/react-router";
 import { useAuth } from "@/lib/auth/auth-context";
 import { Logo } from "@/components/brand/logo";
 import { Button } from "@/components/ui/button";
@@ -10,6 +10,7 @@ export const Route = createFileRoute("/_authenticated")({
 function AuthenticatedLayout() {
   const { loading, isAuthenticated, profile, signOut } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
 
   if (loading) {
     return (
@@ -22,13 +23,25 @@ function AuthenticatedLayout() {
     throw redirect({ to: "/login" });
   }
 
-  // Locked state for unpaid / suspended / expired
+  // Allowed routes inside the locked-account zone
+  const allowedWhileLocked = ["/onboarding", "/billing"];
+  const isAllowed = allowedWhileLocked.some((p) => location.pathname.startsWith(p));
+
   const state = profile?.account_state;
-  if (state && state !== "active") {
+  const needsOnboarding = profile && !profile.onboarding_completed;
+
+  if (state && state !== "active" && !isAllowed) {
+    // Route members to wizard first, then billing
+    if (state === "pending_payment") {
+      throw redirect({ to: needsOnboarding ? "/onboarding" : "/billing" });
+    }
     return (
       <LockedState
         state={state}
         onSignOut={async () => { await signOut(); void navigate({ to: "/login" }); }}
+        onCta={() => {
+          if (state === "expired") void navigate({ to: "/billing" });
+        }}
       />
     );
   }
@@ -36,7 +49,7 @@ function AuthenticatedLayout() {
   return <Outlet />;
 }
 
-function LockedState({ state, onSignOut }: { state: string; onSignOut: () => void }) {
+function LockedState({ state, onSignOut, onCta }: { state: string; onSignOut: () => void; onCta: () => void }) {
   const copy: Record<string, { title: string; body: string; cta: string }> = {
     unverified: { title: "Verify your email", body: "Click the link we sent to your inbox to activate your account.", cta: "Resend verification" },
     pending_payment: { title: "Complete your membership", body: "Choose a plan and complete payment to unlock your dashboard.", cta: "Choose a plan" },
@@ -53,10 +66,9 @@ function LockedState({ state, onSignOut }: { state: string; onSignOut: () => voi
         <h1 className="mt-10 font-display text-4xl text-foreground">{c.title}</h1>
         <p className="mt-4 text-muted-foreground">{c.body}</p>
         <div className="mt-8 flex flex-col gap-2">
-          <Button size="lg" className="w-full" disabled>{c.cta}</Button>
+          <Button size="lg" className="w-full" onClick={onCta} disabled={state === "unverified" || state === "suspended"}>{c.cta}</Button>
           <Button variant="ghost" onClick={onSignOut}>Sign out</Button>
         </div>
-        <p className="mt-8 text-xs text-muted-foreground/70 uppercase tracking-widest">Onboarding & payments coming in the next phase</p>
       </div>
     </div>
   );

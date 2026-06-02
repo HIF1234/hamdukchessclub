@@ -55,7 +55,9 @@ export const getDashboardStats = createServerFn({ method: "GET" })
         .select("id, name, student_count")
         .eq("owner_user_id", userId)
         .maybeSingle();
-      out.mySchool = school ?? null;
+      out.mySchool = school
+        ? { id: school.id, name: school.name, studentCount: school.student_count }
+        : null;
       if (school) {
         const { count } = await supabase
           .from("school_memberships")

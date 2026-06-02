@@ -50,6 +50,100 @@ export type Database = {
         }
         Relationships: []
       }
+      class_enrollments: {
+        Row: {
+          attended: boolean | null
+          class_id: string
+          enrolled_at: string
+          id: string
+          user_id: string
+        }
+        Insert: {
+          attended?: boolean | null
+          class_id: string
+          enrolled_at?: string
+          id?: string
+          user_id: string
+        }
+        Update: {
+          attended?: boolean | null
+          class_id?: string
+          enrolled_at?: string
+          id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "class_enrollments_class_id_fkey"
+            columns: ["class_id"]
+            isOneToOne: false
+            referencedRelation: "classes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      classes: {
+        Row: {
+          capacity: number | null
+          created_at: string
+          created_by: string | null
+          description: string | null
+          ends_at: string | null
+          id: string
+          level: Database["public"]["Enums"]["class_level"]
+          meeting_url: string | null
+          resources: Json | null
+          school_id: string | null
+          starts_at: string
+          status: Database["public"]["Enums"]["class_status"]
+          title: string
+          tutor_id: string | null
+          updated_at: string
+        }
+        Insert: {
+          capacity?: number | null
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          ends_at?: string | null
+          id?: string
+          level?: Database["public"]["Enums"]["class_level"]
+          meeting_url?: string | null
+          resources?: Json | null
+          school_id?: string | null
+          starts_at: string
+          status?: Database["public"]["Enums"]["class_status"]
+          title: string
+          tutor_id?: string | null
+          updated_at?: string
+        }
+        Update: {
+          capacity?: number | null
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          ends_at?: string | null
+          id?: string
+          level?: Database["public"]["Enums"]["class_level"]
+          meeting_url?: string | null
+          resources?: Json | null
+          school_id?: string | null
+          starts_at?: string
+          status?: Database["public"]["Enums"]["class_status"]
+          title?: string
+          tutor_id?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "classes_school_id_fkey"
+            columns: ["school_id"]
+            isOneToOne: false
+            referencedRelation: "schools"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       payments: {
         Row: {
           amount_kobo: number
@@ -370,6 +464,100 @@ export type Database = {
           },
         ]
       }
+      tournament_participants: {
+        Row: {
+          id: string
+          rank: number | null
+          registered_at: string
+          score: number | null
+          seed: number | null
+          tournament_id: string
+          user_id: string
+        }
+        Insert: {
+          id?: string
+          rank?: number | null
+          registered_at?: string
+          score?: number | null
+          seed?: number | null
+          tournament_id: string
+          user_id: string
+        }
+        Update: {
+          id?: string
+          rank?: number | null
+          registered_at?: string
+          score?: number | null
+          seed?: number | null
+          tournament_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tournament_participants_tournament_id_fkey"
+            columns: ["tournament_id"]
+            isOneToOne: false
+            referencedRelation: "tournaments"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      tournaments: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          description: string | null
+          ends_at: string | null
+          format: Database["public"]["Enums"]["tournament_format"]
+          id: string
+          max_participants: number | null
+          name: string
+          rounds: number | null
+          school_id: string | null
+          starts_at: string
+          status: Database["public"]["Enums"]["tournament_status"]
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          ends_at?: string | null
+          format?: Database["public"]["Enums"]["tournament_format"]
+          id?: string
+          max_participants?: number | null
+          name: string
+          rounds?: number | null
+          school_id?: string | null
+          starts_at: string
+          status?: Database["public"]["Enums"]["tournament_status"]
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          ends_at?: string | null
+          format?: Database["public"]["Enums"]["tournament_format"]
+          id?: string
+          max_participants?: number | null
+          name?: string
+          rounds?: number | null
+          school_id?: string | null
+          starts_at?: string
+          status?: Database["public"]["Enums"]["tournament_status"]
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tournaments_school_id_fkey"
+            columns: ["school_id"]
+            isOneToOne: false
+            referencedRelation: "schools"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       user_roles: {
         Row: {
           assigned_at: string
@@ -423,6 +611,13 @@ export type Database = {
         | "expired"
         | "suspended"
       app_role: "super_admin" | "school_admin" | "tutor" | "member"
+      class_level: "beginner" | "intermediate" | "advanced" | "all_levels"
+      class_status:
+        | "draft"
+        | "scheduled"
+        | "in_progress"
+        | "completed"
+        | "cancelled"
       membership_level: "beginner" | "intermediate" | "advanced"
       profile_visibility: "members_only" | "public"
       school_program_tier: "starter" | "standard" | "premium"
@@ -431,6 +626,13 @@ export type Database = {
         | "pending"
         | "active"
         | "expired"
+        | "cancelled"
+      tournament_format: "swiss" | "round_robin" | "knockout" | "arena"
+      tournament_status:
+        | "draft"
+        | "registration_open"
+        | "in_progress"
+        | "completed"
         | "cancelled"
     }
     CompositeTypes: {
@@ -567,6 +769,14 @@ export const Constants = {
         "suspended",
       ],
       app_role: ["super_admin", "school_admin", "tutor", "member"],
+      class_level: ["beginner", "intermediate", "advanced", "all_levels"],
+      class_status: [
+        "draft",
+        "scheduled",
+        "in_progress",
+        "completed",
+        "cancelled",
+      ],
       membership_level: ["beginner", "intermediate", "advanced"],
       profile_visibility: ["members_only", "public"],
       school_program_tier: ["starter", "standard", "premium"],
@@ -575,6 +785,14 @@ export const Constants = {
         "pending",
         "active",
         "expired",
+        "cancelled",
+      ],
+      tournament_format: ["swiss", "round_robin", "knockout", "arena"],
+      tournament_status: [
+        "draft",
+        "registration_open",
+        "in_progress",
+        "completed",
         "cancelled",
       ],
     },

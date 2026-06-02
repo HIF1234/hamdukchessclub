@@ -23,7 +23,10 @@ type: feature
 12. ✓ Four role views: super_admin (members/schools/revenue), school_admin (my school), tutor (placeholder), member (rating/level/membership)
 
 # Phase 4 — Core mgmt (Admin)
-14. Member mgmt, School mgmt, Tutor mgmt, Class mgmt, Tournament mgmt
+14. ✓ Member mgmt, School mgmt, Tutor mgmt, Class mgmt, Tournament mgmt
+    - /members /schools /tutors (admin lists w/ tables)
+    - /classes /tournaments (cards + create dialog + enrol/register)
+    - tables: classes, class_enrollments, tournaments, tournament_participants
 
 # Phase 5 — Classes & Live classroom (3rd-party board plug-in)
 15. Class scheduling, attendance, session notes, resources

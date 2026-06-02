@@ -23,6 +23,7 @@ import { Route as AuthenticatedSchoolsRouteImport } from './routes/_authenticate
 import { Route as AuthenticatedOnboardingRouteImport } from './routes/_authenticated/onboarding'
 import { Route as AuthenticatedMembersRouteImport } from './routes/_authenticated/members'
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
+import { Route as AuthenticatedClassesRouteImport } from './routes/_authenticated/classes'
 import { Route as AuthenticatedBillingRouteImport } from './routes/_authenticated/billing'
 import { Route as ApiPublicPaystackWebhookRouteImport } from './routes/api/public/paystack-webhook'
 
@@ -95,6 +96,11 @@ const AuthenticatedDashboardRoute = AuthenticatedDashboardRouteImport.update({
   path: '/dashboard',
   getParentRoute: () => AuthenticatedRoute,
 } as any)
+const AuthenticatedClassesRoute = AuthenticatedClassesRouteImport.update({
+  id: '/classes',
+  path: '/classes',
+  getParentRoute: () => AuthenticatedRoute,
+} as any)
 const AuthenticatedBillingRoute = AuthenticatedBillingRouteImport.update({
   id: '/billing',
   path: '/billing',
@@ -115,6 +121,7 @@ export interface FileRoutesByFullPath {
   '/signup': typeof SignupRoute
   '/verify-email': typeof VerifyEmailRoute
   '/billing': typeof AuthenticatedBillingRoute
+  '/classes': typeof AuthenticatedClassesRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/members': typeof AuthenticatedMembersRoute
   '/onboarding': typeof AuthenticatedOnboardingRoute
@@ -132,6 +139,7 @@ export interface FileRoutesByTo {
   '/signup': typeof SignupRoute
   '/verify-email': typeof VerifyEmailRoute
   '/billing': typeof AuthenticatedBillingRoute
+  '/classes': typeof AuthenticatedClassesRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/members': typeof AuthenticatedMembersRoute
   '/onboarding': typeof AuthenticatedOnboardingRoute
@@ -151,6 +159,7 @@ export interface FileRoutesById {
   '/signup': typeof SignupRoute
   '/verify-email': typeof VerifyEmailRoute
   '/_authenticated/billing': typeof AuthenticatedBillingRoute
+  '/_authenticated/classes': typeof AuthenticatedClassesRoute
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
   '/_authenticated/members': typeof AuthenticatedMembersRoute
   '/_authenticated/onboarding': typeof AuthenticatedOnboardingRoute
@@ -170,6 +179,7 @@ export interface FileRouteTypes {
     | '/signup'
     | '/verify-email'
     | '/billing'
+    | '/classes'
     | '/dashboard'
     | '/members'
     | '/onboarding'
@@ -187,6 +197,7 @@ export interface FileRouteTypes {
     | '/signup'
     | '/verify-email'
     | '/billing'
+    | '/classes'
     | '/dashboard'
     | '/members'
     | '/onboarding'
@@ -205,6 +216,7 @@ export interface FileRouteTypes {
     | '/signup'
     | '/verify-email'
     | '/_authenticated/billing'
+    | '/_authenticated/classes'
     | '/_authenticated/dashboard'
     | '/_authenticated/members'
     | '/_authenticated/onboarding'
@@ -328,6 +340,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedDashboardRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
+    '/_authenticated/classes': {
+      id: '/_authenticated/classes'
+      path: '/classes'
+      fullPath: '/classes'
+      preLoaderRoute: typeof AuthenticatedClassesRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
     '/_authenticated/billing': {
       id: '/_authenticated/billing'
       path: '/billing'
@@ -347,6 +366,7 @@ declare module '@tanstack/react-router' {
 
 interface AuthenticatedRouteChildren {
   AuthenticatedBillingRoute: typeof AuthenticatedBillingRoute
+  AuthenticatedClassesRoute: typeof AuthenticatedClassesRoute
   AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
   AuthenticatedMembersRoute: typeof AuthenticatedMembersRoute
   AuthenticatedOnboardingRoute: typeof AuthenticatedOnboardingRoute
@@ -356,6 +376,7 @@ interface AuthenticatedRouteChildren {
 
 const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
   AuthenticatedBillingRoute: AuthenticatedBillingRoute,
+  AuthenticatedClassesRoute: AuthenticatedClassesRoute,
   AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,
   AuthenticatedMembersRoute: AuthenticatedMembersRoute,
   AuthenticatedOnboardingRoute: AuthenticatedOnboardingRoute,

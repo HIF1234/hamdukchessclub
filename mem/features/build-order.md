@@ -18,10 +18,9 @@ type: feature
 9. ✓ Locked-state redirects: pending_payment → onboarding → billing → payment/callback → active
 
 # Phase 3 — Role Dashboards
-10. Member dashboard + profile
-11. Tutor dashboard
-12. School Admin dashboard
-13. Super Admin dashboard
+10. ✓ Role-aware DashboardShell w/ sidebar (filters items by role)
+11. ✓ getDashboardStats server fn (uses supabaseAdmin for super_admin aggregates)
+12. ✓ Four role views: super_admin (members/schools/revenue), school_admin (my school), tutor (placeholder), member (rating/level/membership)
 
 # Phase 4 — Core mgmt (Admin)
 14. Member mgmt, School mgmt, Tutor mgmt, Class mgmt, Tournament mgmt

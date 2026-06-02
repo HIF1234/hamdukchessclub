@@ -19,6 +19,7 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as PaymentCallbackRouteImport } from './routes/payment.callback'
 import { Route as AuthCallbackRouteImport } from './routes/auth.callback'
 import { Route as AuthenticatedTutorsRouteImport } from './routes/_authenticated/tutors'
+import { Route as AuthenticatedTournamentsRouteImport } from './routes/_authenticated/tournaments'
 import { Route as AuthenticatedSchoolsRouteImport } from './routes/_authenticated/schools'
 import { Route as AuthenticatedOnboardingRouteImport } from './routes/_authenticated/onboarding'
 import { Route as AuthenticatedMembersRouteImport } from './routes/_authenticated/members'
@@ -76,6 +77,12 @@ const AuthenticatedTutorsRoute = AuthenticatedTutorsRouteImport.update({
   path: '/tutors',
   getParentRoute: () => AuthenticatedRoute,
 } as any)
+const AuthenticatedTournamentsRoute =
+  AuthenticatedTournamentsRouteImport.update({
+    id: '/tournaments',
+    path: '/tournaments',
+    getParentRoute: () => AuthenticatedRoute,
+  } as any)
 const AuthenticatedSchoolsRoute = AuthenticatedSchoolsRouteImport.update({
   id: '/schools',
   path: '/schools',
@@ -126,6 +133,7 @@ export interface FileRoutesByFullPath {
   '/members': typeof AuthenticatedMembersRoute
   '/onboarding': typeof AuthenticatedOnboardingRoute
   '/schools': typeof AuthenticatedSchoolsRoute
+  '/tournaments': typeof AuthenticatedTournamentsRoute
   '/tutors': typeof AuthenticatedTutorsRoute
   '/auth/callback': typeof AuthCallbackRoute
   '/payment/callback': typeof PaymentCallbackRoute
@@ -144,6 +152,7 @@ export interface FileRoutesByTo {
   '/members': typeof AuthenticatedMembersRoute
   '/onboarding': typeof AuthenticatedOnboardingRoute
   '/schools': typeof AuthenticatedSchoolsRoute
+  '/tournaments': typeof AuthenticatedTournamentsRoute
   '/tutors': typeof AuthenticatedTutorsRoute
   '/auth/callback': typeof AuthCallbackRoute
   '/payment/callback': typeof PaymentCallbackRoute
@@ -164,6 +173,7 @@ export interface FileRoutesById {
   '/_authenticated/members': typeof AuthenticatedMembersRoute
   '/_authenticated/onboarding': typeof AuthenticatedOnboardingRoute
   '/_authenticated/schools': typeof AuthenticatedSchoolsRoute
+  '/_authenticated/tournaments': typeof AuthenticatedTournamentsRoute
   '/_authenticated/tutors': typeof AuthenticatedTutorsRoute
   '/auth/callback': typeof AuthCallbackRoute
   '/payment/callback': typeof PaymentCallbackRoute
@@ -184,6 +194,7 @@ export interface FileRouteTypes {
     | '/members'
     | '/onboarding'
     | '/schools'
+    | '/tournaments'
     | '/tutors'
     | '/auth/callback'
     | '/payment/callback'
@@ -202,6 +213,7 @@ export interface FileRouteTypes {
     | '/members'
     | '/onboarding'
     | '/schools'
+    | '/tournaments'
     | '/tutors'
     | '/auth/callback'
     | '/payment/callback'
@@ -221,6 +233,7 @@ export interface FileRouteTypes {
     | '/_authenticated/members'
     | '/_authenticated/onboarding'
     | '/_authenticated/schools'
+    | '/_authenticated/tournaments'
     | '/_authenticated/tutors'
     | '/auth/callback'
     | '/payment/callback'
@@ -312,6 +325,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedTutorsRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
+    '/_authenticated/tournaments': {
+      id: '/_authenticated/tournaments'
+      path: '/tournaments'
+      fullPath: '/tournaments'
+      preLoaderRoute: typeof AuthenticatedTournamentsRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
     '/_authenticated/schools': {
       id: '/_authenticated/schools'
       path: '/schools'
@@ -371,6 +391,7 @@ interface AuthenticatedRouteChildren {
   AuthenticatedMembersRoute: typeof AuthenticatedMembersRoute
   AuthenticatedOnboardingRoute: typeof AuthenticatedOnboardingRoute
   AuthenticatedSchoolsRoute: typeof AuthenticatedSchoolsRoute
+  AuthenticatedTournamentsRoute: typeof AuthenticatedTournamentsRoute
   AuthenticatedTutorsRoute: typeof AuthenticatedTutorsRoute
 }
 
@@ -381,6 +402,7 @@ const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
   AuthenticatedMembersRoute: AuthenticatedMembersRoute,
   AuthenticatedOnboardingRoute: AuthenticatedOnboardingRoute,
   AuthenticatedSchoolsRoute: AuthenticatedSchoolsRoute,
+  AuthenticatedTournamentsRoute: AuthenticatedTournamentsRoute,
   AuthenticatedTutorsRoute: AuthenticatedTutorsRoute,
 }
 

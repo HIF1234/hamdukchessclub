@@ -80,6 +80,13 @@ export type Database = {
             referencedRelation: "classes"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "class_enrollments_class_id_fkey"
+            columns: ["class_id"]
+            isOneToOne: false
+            referencedRelation: "classes_public"
+            referencedColumns: ["id"]
+          },
         ]
       }
       classes: {
@@ -605,6 +612,63 @@ export type Database = {
       }
     }
     Views: {
+      classes_public: {
+        Row: {
+          capacity: number | null
+          created_at: string | null
+          description: string | null
+          ends_at: string | null
+          id: string | null
+          level: Database["public"]["Enums"]["class_level"] | null
+          school_id: string | null
+          starts_at: string | null
+          status: Database["public"]["Enums"]["class_status"] | null
+          title: string | null
+          tutor_id: string | null
+        }
+        Insert: {
+          capacity?: number | null
+          created_at?: string | null
+          description?: string | null
+          ends_at?: string | null
+          id?: string | null
+          level?: Database["public"]["Enums"]["class_level"] | null
+          school_id?: string | null
+          starts_at?: string | null
+          status?: Database["public"]["Enums"]["class_status"] | null
+          title?: string | null
+          tutor_id?: string | null
+        }
+        Update: {
+          capacity?: number | null
+          created_at?: string | null
+          description?: string | null
+          ends_at?: string | null
+          id?: string | null
+          level?: Database["public"]["Enums"]["class_level"] | null
+          school_id?: string | null
+          starts_at?: string | null
+          status?: Database["public"]["Enums"]["class_status"] | null
+          title?: string | null
+          tutor_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "classes_school_id_fkey"
+            columns: ["school_id"]
+            isOneToOne: false
+            referencedRelation: "schools"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "classes_school_id_fkey"
+            columns: ["school_id"]
+            isOneToOne: false
+            referencedRelation: "schools_public"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles_public: {
         Row: {
           avatar_url: string | null
@@ -684,6 +748,15 @@ export type Database = {
       is_school_member: {
         Args: { _school_id: string; _user_id: string }
         Returns: boolean
+      }
+      log_audit_event: {
+        Args: {
+          _action: string
+          _metadata?: Json
+          _target_id?: string
+          _target_type?: string
+        }
+        Returns: string
       }
     }
     Enums: {

@@ -3,6 +3,11 @@ import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
 
+function fail(scope: string, error: unknown): never {
+  console.error(`[admin.${scope}]`, error);
+  throw new Error("Something went wrong. Please try again.");
+}
+
 async function getRoles(supabase: any, userId: string) {
   const { data } = await supabase.from("user_roles").select("role").eq("user_id", userId);
   return (data ?? []).map((r: any) => r.role as string);
@@ -23,7 +28,7 @@ export const listMembers = createServerFn({ method: "GET" })
       .select("id, full_name, email, account_state, membership_level, chess_rating, membership_expires_at, created_at")
       .order("created_at", { ascending: false })
       .limit(500);
-    if (error) throw new Error(error.message);
+    if (error) fail("listMembers", error);
     return data ?? [];
   });
 
@@ -38,7 +43,7 @@ export const listSchools = createServerFn({ method: "GET" })
       .from("schools")
       .select("id, name, contact_email, contact_person, student_count, subscription_status, program_tier, is_suspended, created_at")
       .order("created_at", { ascending: false });
-    if (error) throw new Error(error.message);
+    if (error) fail("listSchools", error);
     return data ?? [];
   });
 
@@ -55,14 +60,14 @@ export const listTutors = createServerFn({ method: "GET" })
       .from("user_roles")
       .select("user_id")
       .eq("role", "tutor");
-    if (tutorErr) throw new Error(tutorErr.message);
+    if (tutorErr) fail("listTutors.roles", tutorErr);
     const ids = (tutorRoleRows ?? []).map((r) => r.user_id);
     if (ids.length === 0) return [];
     const { data, error } = await supabaseAdmin
       .from("profiles")
       .select("id, full_name, email, chess_rating, created_at")
       .in("id", ids);
-    if (error) throw new Error(error.message);
+    if (error) fail("listTutors", error);
     return data ?? [];
   });
 
@@ -76,7 +81,7 @@ export const listClasses = createServerFn({ method: "GET" })
       .select("id, title, description, tutor_id, school_id, level, status, starts_at, ends_at, capacity")
       .order("starts_at", { ascending: true })
       .limit(200);
-    if (error) throw new Error(error.message);
+    if (error) fail("listClasses", error);
     return data ?? [];
   });
 
@@ -105,7 +110,7 @@ export const createClass = createServerFn({ method: "POST" })
       .insert({ ...data, created_by: userId })
       .select()
       .single();
-    if (error) throw new Error(error.message);
+    if (error) fail("createClass", error);
     return created;
   });
 
@@ -117,7 +122,7 @@ export const enrollInClass = createServerFn({ method: "POST" })
     const { error } = await supabase
       .from("class_enrollments")
       .insert({ class_id: data.class_id, user_id: userId });
-    if (error) throw new Error(error.message);
+    if (error) fail("enrollInClass", error);
     return { ok: true };
   });
 
@@ -131,7 +136,7 @@ export const listTournaments = createServerFn({ method: "GET" })
       .select("id, name, description, format, status, starts_at, ends_at, max_participants, rounds, school_id")
       .order("starts_at", { ascending: true })
       .limit(200);
-    if (error) throw new Error(error.message);
+    if (error) fail("listTournaments", error);
     return data ?? [];
   });
 
@@ -160,7 +165,7 @@ export const createTournament = createServerFn({ method: "POST" })
       .insert({ ...data, status: "registration_open", created_by: userId })
       .select()
       .single();
-    if (error) throw new Error(error.message);
+    if (error) fail("createTournament", error);
     return created;
   });
 
@@ -172,6 +177,6 @@ export const registerForTournament = createServerFn({ method: "POST" })
     const { error } = await supabase
       .from("tournament_participants")
       .insert({ tournament_id: data.tournament_id, user_id: userId });
-    if (error) throw new Error(error.message);
+    if (error) fail("registerForTournament", error);
     return { ok: true };
   });

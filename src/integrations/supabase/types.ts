@@ -91,6 +91,7 @@ export type Database = {
       }
       classes: {
         Row: {
+          attendance_taken_at: string | null
           capacity: number | null
           created_at: string
           created_by: string | null
@@ -101,6 +102,7 @@ export type Database = {
           meeting_url: string | null
           resources: Json | null
           school_id: string | null
+          session_notes: string | null
           starts_at: string
           status: Database["public"]["Enums"]["class_status"]
           title: string
@@ -108,6 +110,7 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          attendance_taken_at?: string | null
           capacity?: number | null
           created_at?: string
           created_by?: string | null
@@ -118,6 +121,7 @@ export type Database = {
           meeting_url?: string | null
           resources?: Json | null
           school_id?: string | null
+          session_notes?: string | null
           starts_at: string
           status?: Database["public"]["Enums"]["class_status"]
           title: string
@@ -125,6 +129,7 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          attendance_taken_at?: string | null
           capacity?: number | null
           created_at?: string
           created_by?: string | null
@@ -135,6 +140,7 @@ export type Database = {
           meeting_url?: string | null
           resources?: Json | null
           school_id?: string | null
+          session_notes?: string | null
           starts_at?: string
           status?: Database["public"]["Enums"]["class_status"]
           title?: string

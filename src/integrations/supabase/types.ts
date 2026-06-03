@@ -491,6 +491,57 @@ export type Database = {
           },
         ]
       }
+      tournament_pairings: {
+        Row: {
+          black_user_id: string | null
+          board: number
+          created_at: string
+          id: string
+          result: string | null
+          round_id: string
+          tournament_id: string
+          updated_at: string
+          white_user_id: string | null
+        }
+        Insert: {
+          black_user_id?: string | null
+          board: number
+          created_at?: string
+          id?: string
+          result?: string | null
+          round_id: string
+          tournament_id: string
+          updated_at?: string
+          white_user_id?: string | null
+        }
+        Update: {
+          black_user_id?: string | null
+          board?: number
+          created_at?: string
+          id?: string
+          result?: string | null
+          round_id?: string
+          tournament_id?: string
+          updated_at?: string
+          white_user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tournament_pairings_round_id_fkey"
+            columns: ["round_id"]
+            isOneToOne: false
+            referencedRelation: "tournament_rounds"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "tournament_pairings_tournament_id_fkey"
+            columns: ["tournament_id"]
+            isOneToOne: false
+            referencedRelation: "tournaments"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       tournament_participants: {
         Row: {
           id: string
@@ -522,6 +573,38 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "tournament_participants_tournament_id_fkey"
+            columns: ["tournament_id"]
+            isOneToOne: false
+            referencedRelation: "tournaments"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      tournament_rounds: {
+        Row: {
+          created_at: string
+          id: string
+          round_number: number
+          status: string
+          tournament_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          round_number: number
+          status?: string
+          tournament_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          round_number?: number
+          status?: string
+          tournament_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tournament_rounds_tournament_id_fkey"
             columns: ["tournament_id"]
             isOneToOne: false
             referencedRelation: "tournaments"

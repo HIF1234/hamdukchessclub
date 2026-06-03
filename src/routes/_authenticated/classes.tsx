@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
@@ -54,14 +54,21 @@ function ClassesPage() {
               <BookOpen className="h-5 w-5 text-primary/70" />
               <Badge variant="secondary" className="capitalize">{c.level.replace("_", " ")}</Badge>
             </div>
-            <h3 className="mt-3 font-display text-xl">{c.title}</h3>
+            <Link to="/classes/$classId" params={{ classId: c.id }} className="mt-3 font-display text-xl hover:text-primary">
+              {c.title}
+            </Link>
             {c.description && <p className="mt-1 text-sm text-muted-foreground line-clamp-2">{c.description}</p>}
             <div className="mt-3 text-xs text-muted-foreground">{new Date(c.starts_at).toLocaleString()}</div>
             <div className="mt-4 flex items-center justify-between">
               <span className="text-xs text-muted-foreground capitalize">{c.status.replace("_", " ")}</span>
-              <Button size="sm" variant="secondary" disabled={enrollMut.isPending} onClick={() => enrollMut.mutate(c.id)}>
-                Enrol
-              </Button>
+              <div className="flex gap-2">
+                <Link to="/classes/$classId" params={{ classId: c.id }}>
+                  <Button size="sm" variant="ghost">Open</Button>
+                </Link>
+                <Button size="sm" variant="secondary" disabled={enrollMut.isPending} onClick={() => enrollMut.mutate(c.id)}>
+                  Enrol
+                </Button>
+              </div>
             </div>
           </Card>
         ))}

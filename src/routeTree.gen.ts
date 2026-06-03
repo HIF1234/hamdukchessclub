@@ -27,6 +27,7 @@ import { Route as AuthenticatedDashboardRouteImport } from './routes/_authentica
 import { Route as AuthenticatedClassesRouteImport } from './routes/_authenticated/classes'
 import { Route as AuthenticatedBillingRouteImport } from './routes/_authenticated/billing'
 import { Route as ApiPublicPaystackWebhookRouteImport } from './routes/api/public/paystack-webhook'
+import { Route as AuthenticatedClassesClassIdRouteImport } from './routes/_authenticated/classes.$classId'
 
 const VerifyEmailRoute = VerifyEmailRouteImport.update({
   id: '/verify-email',
@@ -119,6 +120,12 @@ const ApiPublicPaystackWebhookRoute =
     path: '/api/public/paystack-webhook',
     getParentRoute: () => rootRouteImport,
   } as any)
+const AuthenticatedClassesClassIdRoute =
+  AuthenticatedClassesClassIdRouteImport.update({
+    id: '/$classId',
+    path: '/$classId',
+    getParentRoute: () => AuthenticatedClassesRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -128,7 +135,7 @@ export interface FileRoutesByFullPath {
   '/signup': typeof SignupRoute
   '/verify-email': typeof VerifyEmailRoute
   '/billing': typeof AuthenticatedBillingRoute
-  '/classes': typeof AuthenticatedClassesRoute
+  '/classes': typeof AuthenticatedClassesRouteWithChildren
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/members': typeof AuthenticatedMembersRoute
   '/onboarding': typeof AuthenticatedOnboardingRoute
@@ -137,6 +144,7 @@ export interface FileRoutesByFullPath {
   '/tutors': typeof AuthenticatedTutorsRoute
   '/auth/callback': typeof AuthCallbackRoute
   '/payment/callback': typeof PaymentCallbackRoute
+  '/classes/$classId': typeof AuthenticatedClassesClassIdRoute
   '/api/public/paystack-webhook': typeof ApiPublicPaystackWebhookRoute
 }
 export interface FileRoutesByTo {
@@ -147,7 +155,7 @@ export interface FileRoutesByTo {
   '/signup': typeof SignupRoute
   '/verify-email': typeof VerifyEmailRoute
   '/billing': typeof AuthenticatedBillingRoute
-  '/classes': typeof AuthenticatedClassesRoute
+  '/classes': typeof AuthenticatedClassesRouteWithChildren
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/members': typeof AuthenticatedMembersRoute
   '/onboarding': typeof AuthenticatedOnboardingRoute
@@ -156,6 +164,7 @@ export interface FileRoutesByTo {
   '/tutors': typeof AuthenticatedTutorsRoute
   '/auth/callback': typeof AuthCallbackRoute
   '/payment/callback': typeof PaymentCallbackRoute
+  '/classes/$classId': typeof AuthenticatedClassesClassIdRoute
   '/api/public/paystack-webhook': typeof ApiPublicPaystackWebhookRoute
 }
 export interface FileRoutesById {
@@ -168,7 +177,7 @@ export interface FileRoutesById {
   '/signup': typeof SignupRoute
   '/verify-email': typeof VerifyEmailRoute
   '/_authenticated/billing': typeof AuthenticatedBillingRoute
-  '/_authenticated/classes': typeof AuthenticatedClassesRoute
+  '/_authenticated/classes': typeof AuthenticatedClassesRouteWithChildren
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
   '/_authenticated/members': typeof AuthenticatedMembersRoute
   '/_authenticated/onboarding': typeof AuthenticatedOnboardingRoute
@@ -177,6 +186,7 @@ export interface FileRoutesById {
   '/_authenticated/tutors': typeof AuthenticatedTutorsRoute
   '/auth/callback': typeof AuthCallbackRoute
   '/payment/callback': typeof PaymentCallbackRoute
+  '/_authenticated/classes/$classId': typeof AuthenticatedClassesClassIdRoute
   '/api/public/paystack-webhook': typeof ApiPublicPaystackWebhookRoute
 }
 export interface FileRouteTypes {
@@ -198,6 +208,7 @@ export interface FileRouteTypes {
     | '/tutors'
     | '/auth/callback'
     | '/payment/callback'
+    | '/classes/$classId'
     | '/api/public/paystack-webhook'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -217,6 +228,7 @@ export interface FileRouteTypes {
     | '/tutors'
     | '/auth/callback'
     | '/payment/callback'
+    | '/classes/$classId'
     | '/api/public/paystack-webhook'
   id:
     | '__root__'
@@ -237,6 +249,7 @@ export interface FileRouteTypes {
     | '/_authenticated/tutors'
     | '/auth/callback'
     | '/payment/callback'
+    | '/_authenticated/classes/$classId'
     | '/api/public/paystack-webhook'
   fileRoutesById: FileRoutesById
 }
@@ -381,12 +394,30 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicPaystackWebhookRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/_authenticated/classes/$classId': {
+      id: '/_authenticated/classes/$classId'
+      path: '/$classId'
+      fullPath: '/classes/$classId'
+      preLoaderRoute: typeof AuthenticatedClassesClassIdRouteImport
+      parentRoute: typeof AuthenticatedClassesRoute
+    }
   }
 }
 
+interface AuthenticatedClassesRouteChildren {
+  AuthenticatedClassesClassIdRoute: typeof AuthenticatedClassesClassIdRoute
+}
+
+const AuthenticatedClassesRouteChildren: AuthenticatedClassesRouteChildren = {
+  AuthenticatedClassesClassIdRoute: AuthenticatedClassesClassIdRoute,
+}
+
+const AuthenticatedClassesRouteWithChildren =
+  AuthenticatedClassesRoute._addFileChildren(AuthenticatedClassesRouteChildren)
+
 interface AuthenticatedRouteChildren {
   AuthenticatedBillingRoute: typeof AuthenticatedBillingRoute
-  AuthenticatedClassesRoute: typeof AuthenticatedClassesRoute
+  AuthenticatedClassesRoute: typeof AuthenticatedClassesRouteWithChildren
   AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
   AuthenticatedMembersRoute: typeof AuthenticatedMembersRoute
   AuthenticatedOnboardingRoute: typeof AuthenticatedOnboardingRoute
@@ -397,7 +428,7 @@ interface AuthenticatedRouteChildren {
 
 const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
   AuthenticatedBillingRoute: AuthenticatedBillingRoute,
-  AuthenticatedClassesRoute: AuthenticatedClassesRoute,
+  AuthenticatedClassesRoute: AuthenticatedClassesRouteWithChildren,
   AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,
   AuthenticatedMembersRoute: AuthenticatedMembersRoute,
   AuthenticatedOnboardingRoute: AuthenticatedOnboardingRoute,

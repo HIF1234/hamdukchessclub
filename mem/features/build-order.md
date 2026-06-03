@@ -29,8 +29,10 @@ type: feature
     - tables: classes, class_enrollments, tournaments, tournament_participants
 
 # Phase 5 — Classes & Live classroom (3rd-party board plug-in)
-15. Class scheduling, attendance, session notes, resources
-16. Live classroom shell (board API plug-in point)
+15. ✓ Class detail page w/ tabs (overview, live, resources, attendance, notes)
+    - getClassDetail / updateClassNotes / updateMeetingUrl / addClassResource / removeClassResource / setAttendance
+    - tutor & school-owner & super-admin manage; enrolled members join
+16. ✓ Live classroom shell — meeting URL field + board API plug-in placeholder
 
 # Phase 6 — Tournaments + Chess play
 17. Swiss pairings, brackets, results

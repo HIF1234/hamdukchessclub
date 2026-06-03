@@ -142,6 +142,13 @@ export type Database = {
             referencedRelation: "schools"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "classes_school_id_fkey"
+            columns: ["school_id"]
+            isOneToOne: false
+            referencedRelation: "schools_public"
+            referencedColumns: ["id"]
+          },
         ]
       }
       payments: {
@@ -382,6 +389,13 @@ export type Database = {
             referencedRelation: "schools"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "school_memberships_school_id_fkey"
+            columns: ["school_id"]
+            isOneToOne: false
+            referencedRelation: "schools_public"
+            referencedColumns: ["id"]
+          },
         ]
       }
       schools: {
@@ -556,6 +570,13 @@ export type Database = {
             referencedRelation: "schools"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "tournaments_school_id_fkey"
+            columns: ["school_id"]
+            isOneToOne: false
+            referencedRelation: "schools_public"
+            referencedColumns: ["id"]
+          },
         ]
       }
       user_roles: {
@@ -584,7 +605,69 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      profiles_public: {
+        Row: {
+          avatar_url: string | null
+          chess_rating: number | null
+          full_name: string | null
+          id: string | null
+          member_since: string | null
+          membership_level:
+            | Database["public"]["Enums"]["membership_level"]
+            | null
+          visibility: Database["public"]["Enums"]["profile_visibility"] | null
+        }
+        Insert: {
+          avatar_url?: string | null
+          chess_rating?: number | null
+          full_name?: string | null
+          id?: string | null
+          member_since?: string | null
+          membership_level?:
+            | Database["public"]["Enums"]["membership_level"]
+            | null
+          visibility?: Database["public"]["Enums"]["profile_visibility"] | null
+        }
+        Update: {
+          avatar_url?: string | null
+          chess_rating?: number | null
+          full_name?: string | null
+          id?: string | null
+          member_since?: string | null
+          membership_level?:
+            | Database["public"]["Enums"]["membership_level"]
+            | null
+          visibility?: Database["public"]["Enums"]["profile_visibility"] | null
+        }
+        Relationships: []
+      }
+      schools_public: {
+        Row: {
+          created_at: string | null
+          id: string | null
+          name: string | null
+          program_tier:
+            | Database["public"]["Enums"]["school_program_tier"]
+            | null
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string | null
+          name?: string | null
+          program_tier?:
+            | Database["public"]["Enums"]["school_program_tier"]
+            | null
+        }
+        Update: {
+          created_at?: string | null
+          id?: string | null
+          name?: string | null
+          program_tier?:
+            | Database["public"]["Enums"]["school_program_tier"]
+            | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
       get_user_roles: {

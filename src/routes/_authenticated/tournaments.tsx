@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
@@ -54,15 +54,22 @@ function TournamentsPage() {
               <Trophy className="h-5 w-5 text-primary/70" />
               <Badge variant="secondary" className="capitalize">{t.format.replace("_", " ")}</Badge>
             </div>
-            <h3 className="mt-3 font-display text-xl">{t.name}</h3>
+            <Link to="/tournaments/$tournamentId" params={{ tournamentId: t.id }} className="mt-3 font-display text-xl hover:text-primary">
+              {t.name}
+            </Link>
             {t.description && <p className="mt-1 text-sm text-muted-foreground line-clamp-2">{t.description}</p>}
             <div className="mt-3 text-xs text-muted-foreground">{new Date(t.starts_at).toLocaleString()}</div>
             <div className="mt-1 text-xs text-muted-foreground">{t.rounds} rounds{t.max_participants ? ` · max ${t.max_participants}` : ""}</div>
             <div className="mt-4 flex items-center justify-between">
               <span className="text-xs text-muted-foreground capitalize">{t.status.replace("_", " ")}</span>
-              <Button size="sm" variant="secondary" disabled={regMut.isPending || t.status !== "registration_open"} onClick={() => regMut.mutate(t.id)}>
-                Register
-              </Button>
+              <div className="flex gap-2">
+                <Link to="/tournaments/$tournamentId" params={{ tournamentId: t.id }}>
+                  <Button size="sm" variant="ghost">Open</Button>
+                </Link>
+                <Button size="sm" variant="secondary" disabled={regMut.isPending || t.status !== "registration_open"} onClick={() => regMut.mutate(t.id)}>
+                  Register
+                </Button>
+              </div>
             </div>
           </Card>
         ))}

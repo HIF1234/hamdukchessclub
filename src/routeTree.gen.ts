@@ -21,12 +21,14 @@ import { Route as AuthCallbackRouteImport } from './routes/auth.callback'
 import { Route as AuthenticatedTutorsRouteImport } from './routes/_authenticated/tutors'
 import { Route as AuthenticatedTournamentsRouteImport } from './routes/_authenticated/tournaments'
 import { Route as AuthenticatedSchoolsRouteImport } from './routes/_authenticated/schools'
+import { Route as AuthenticatedPlayRouteImport } from './routes/_authenticated/play'
 import { Route as AuthenticatedOnboardingRouteImport } from './routes/_authenticated/onboarding'
 import { Route as AuthenticatedMembersRouteImport } from './routes/_authenticated/members'
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
 import { Route as AuthenticatedClassesRouteImport } from './routes/_authenticated/classes'
 import { Route as AuthenticatedBillingRouteImport } from './routes/_authenticated/billing'
 import { Route as ApiPublicPaystackWebhookRouteImport } from './routes/api/public/paystack-webhook'
+import { Route as AuthenticatedTournamentsTournamentIdRouteImport } from './routes/_authenticated/tournaments.$tournamentId'
 import { Route as AuthenticatedClassesClassIdRouteImport } from './routes/_authenticated/classes.$classId'
 
 const VerifyEmailRoute = VerifyEmailRouteImport.update({
@@ -89,6 +91,11 @@ const AuthenticatedSchoolsRoute = AuthenticatedSchoolsRouteImport.update({
   path: '/schools',
   getParentRoute: () => AuthenticatedRoute,
 } as any)
+const AuthenticatedPlayRoute = AuthenticatedPlayRouteImport.update({
+  id: '/play',
+  path: '/play',
+  getParentRoute: () => AuthenticatedRoute,
+} as any)
 const AuthenticatedOnboardingRoute = AuthenticatedOnboardingRouteImport.update({
   id: '/onboarding',
   path: '/onboarding',
@@ -120,6 +127,12 @@ const ApiPublicPaystackWebhookRoute =
     path: '/api/public/paystack-webhook',
     getParentRoute: () => rootRouteImport,
   } as any)
+const AuthenticatedTournamentsTournamentIdRoute =
+  AuthenticatedTournamentsTournamentIdRouteImport.update({
+    id: '/$tournamentId',
+    path: '/$tournamentId',
+    getParentRoute: () => AuthenticatedTournamentsRoute,
+  } as any)
 const AuthenticatedClassesClassIdRoute =
   AuthenticatedClassesClassIdRouteImport.update({
     id: '/$classId',
@@ -139,12 +152,14 @@ export interface FileRoutesByFullPath {
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/members': typeof AuthenticatedMembersRoute
   '/onboarding': typeof AuthenticatedOnboardingRoute
+  '/play': typeof AuthenticatedPlayRoute
   '/schools': typeof AuthenticatedSchoolsRoute
-  '/tournaments': typeof AuthenticatedTournamentsRoute
+  '/tournaments': typeof AuthenticatedTournamentsRouteWithChildren
   '/tutors': typeof AuthenticatedTutorsRoute
   '/auth/callback': typeof AuthCallbackRoute
   '/payment/callback': typeof PaymentCallbackRoute
   '/classes/$classId': typeof AuthenticatedClassesClassIdRoute
+  '/tournaments/$tournamentId': typeof AuthenticatedTournamentsTournamentIdRoute
   '/api/public/paystack-webhook': typeof ApiPublicPaystackWebhookRoute
 }
 export interface FileRoutesByTo {
@@ -159,12 +174,14 @@ export interface FileRoutesByTo {
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/members': typeof AuthenticatedMembersRoute
   '/onboarding': typeof AuthenticatedOnboardingRoute
+  '/play': typeof AuthenticatedPlayRoute
   '/schools': typeof AuthenticatedSchoolsRoute
-  '/tournaments': typeof AuthenticatedTournamentsRoute
+  '/tournaments': typeof AuthenticatedTournamentsRouteWithChildren
   '/tutors': typeof AuthenticatedTutorsRoute
   '/auth/callback': typeof AuthCallbackRoute
   '/payment/callback': typeof PaymentCallbackRoute
   '/classes/$classId': typeof AuthenticatedClassesClassIdRoute
+  '/tournaments/$tournamentId': typeof AuthenticatedTournamentsTournamentIdRoute
   '/api/public/paystack-webhook': typeof ApiPublicPaystackWebhookRoute
 }
 export interface FileRoutesById {
@@ -181,12 +198,14 @@ export interface FileRoutesById {
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
   '/_authenticated/members': typeof AuthenticatedMembersRoute
   '/_authenticated/onboarding': typeof AuthenticatedOnboardingRoute
+  '/_authenticated/play': typeof AuthenticatedPlayRoute
   '/_authenticated/schools': typeof AuthenticatedSchoolsRoute
-  '/_authenticated/tournaments': typeof AuthenticatedTournamentsRoute
+  '/_authenticated/tournaments': typeof AuthenticatedTournamentsRouteWithChildren
   '/_authenticated/tutors': typeof AuthenticatedTutorsRoute
   '/auth/callback': typeof AuthCallbackRoute
   '/payment/callback': typeof PaymentCallbackRoute
   '/_authenticated/classes/$classId': typeof AuthenticatedClassesClassIdRoute
+  '/_authenticated/tournaments/$tournamentId': typeof AuthenticatedTournamentsTournamentIdRoute
   '/api/public/paystack-webhook': typeof ApiPublicPaystackWebhookRoute
 }
 export interface FileRouteTypes {
@@ -203,12 +222,14 @@ export interface FileRouteTypes {
     | '/dashboard'
     | '/members'
     | '/onboarding'
+    | '/play'
     | '/schools'
     | '/tournaments'
     | '/tutors'
     | '/auth/callback'
     | '/payment/callback'
     | '/classes/$classId'
+    | '/tournaments/$tournamentId'
     | '/api/public/paystack-webhook'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -223,12 +244,14 @@ export interface FileRouteTypes {
     | '/dashboard'
     | '/members'
     | '/onboarding'
+    | '/play'
     | '/schools'
     | '/tournaments'
     | '/tutors'
     | '/auth/callback'
     | '/payment/callback'
     | '/classes/$classId'
+    | '/tournaments/$tournamentId'
     | '/api/public/paystack-webhook'
   id:
     | '__root__'
@@ -244,12 +267,14 @@ export interface FileRouteTypes {
     | '/_authenticated/dashboard'
     | '/_authenticated/members'
     | '/_authenticated/onboarding'
+    | '/_authenticated/play'
     | '/_authenticated/schools'
     | '/_authenticated/tournaments'
     | '/_authenticated/tutors'
     | '/auth/callback'
     | '/payment/callback'
     | '/_authenticated/classes/$classId'
+    | '/_authenticated/tournaments/$tournamentId'
     | '/api/public/paystack-webhook'
   fileRoutesById: FileRoutesById
 }
@@ -352,6 +377,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedSchoolsRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
+    '/_authenticated/play': {
+      id: '/_authenticated/play'
+      path: '/play'
+      fullPath: '/play'
+      preLoaderRoute: typeof AuthenticatedPlayRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
     '/_authenticated/onboarding': {
       id: '/_authenticated/onboarding'
       path: '/onboarding'
@@ -394,6 +426,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicPaystackWebhookRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/_authenticated/tournaments/$tournamentId': {
+      id: '/_authenticated/tournaments/$tournamentId'
+      path: '/$tournamentId'
+      fullPath: '/tournaments/$tournamentId'
+      preLoaderRoute: typeof AuthenticatedTournamentsTournamentIdRouteImport
+      parentRoute: typeof AuthenticatedTournamentsRoute
+    }
     '/_authenticated/classes/$classId': {
       id: '/_authenticated/classes/$classId'
       path: '/$classId'
@@ -415,14 +454,30 @@ const AuthenticatedClassesRouteChildren: AuthenticatedClassesRouteChildren = {
 const AuthenticatedClassesRouteWithChildren =
   AuthenticatedClassesRoute._addFileChildren(AuthenticatedClassesRouteChildren)
 
+interface AuthenticatedTournamentsRouteChildren {
+  AuthenticatedTournamentsTournamentIdRoute: typeof AuthenticatedTournamentsTournamentIdRoute
+}
+
+const AuthenticatedTournamentsRouteChildren: AuthenticatedTournamentsRouteChildren =
+  {
+    AuthenticatedTournamentsTournamentIdRoute:
+      AuthenticatedTournamentsTournamentIdRoute,
+  }
+
+const AuthenticatedTournamentsRouteWithChildren =
+  AuthenticatedTournamentsRoute._addFileChildren(
+    AuthenticatedTournamentsRouteChildren,
+  )
+
 interface AuthenticatedRouteChildren {
   AuthenticatedBillingRoute: typeof AuthenticatedBillingRoute
   AuthenticatedClassesRoute: typeof AuthenticatedClassesRouteWithChildren
   AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
   AuthenticatedMembersRoute: typeof AuthenticatedMembersRoute
   AuthenticatedOnboardingRoute: typeof AuthenticatedOnboardingRoute
+  AuthenticatedPlayRoute: typeof AuthenticatedPlayRoute
   AuthenticatedSchoolsRoute: typeof AuthenticatedSchoolsRoute
-  AuthenticatedTournamentsRoute: typeof AuthenticatedTournamentsRoute
+  AuthenticatedTournamentsRoute: typeof AuthenticatedTournamentsRouteWithChildren
   AuthenticatedTutorsRoute: typeof AuthenticatedTutorsRoute
 }
 
@@ -432,8 +487,9 @@ const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
   AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,
   AuthenticatedMembersRoute: AuthenticatedMembersRoute,
   AuthenticatedOnboardingRoute: AuthenticatedOnboardingRoute,
+  AuthenticatedPlayRoute: AuthenticatedPlayRoute,
   AuthenticatedSchoolsRoute: AuthenticatedSchoolsRoute,
-  AuthenticatedTournamentsRoute: AuthenticatedTournamentsRoute,
+  AuthenticatedTournamentsRoute: AuthenticatedTournamentsRouteWithChildren,
   AuthenticatedTutorsRoute: AuthenticatedTutorsRoute,
 }
 

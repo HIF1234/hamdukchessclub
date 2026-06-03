@@ -35,8 +35,11 @@ type: feature
 16. ✓ Live classroom shell — meeting URL field + board API plug-in placeholder
 
 # Phase 6 — Tournaments + Chess play
-17. Swiss pairings, brackets, results
-18. Casual play (board API), puzzles (puzzle API)
+17. ✓ Tournament detail page: standings, rounds, pairings, participants
+    - tables: tournament_rounds, tournament_pairings
+    - generateNextRound (Swiss top-half pairing, knockout advance-on-win, avoids rematches, byes)
+    - recordResult, completeTournament
+18. ✓ Play & Puzzles page — board/puzzle/bot plug-in points (provider not yet wired)
 
 # Phase 7 — Communications & Analytics
 19. Announcements, in-app messaging w/ role restrictions

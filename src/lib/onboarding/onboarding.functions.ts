@@ -42,7 +42,10 @@ export const saveOnboarding = createServerFn({ method: "POST" })
         onboarding_completed: data.onboarding_completed ?? false,
       })
       .eq("id", userId);
-    if (error) throw new Error(error.message);
+    if (error) {
+      console.error("[onboarding.save]", error);
+      throw new Error("Could not save your details. Please try again.");
+    }
     return { ok: true };
   });
 
@@ -79,7 +82,10 @@ export const upsertSchool = createServerFn({ method: "POST" })
           student_count: data.student_count ?? null,
         })
         .eq("id", existing.id);
-      if (error) throw new Error(error.message);
+      if (error) {
+        console.error("[onboarding.school.update]", error);
+        throw new Error("Could not update school. Please try again.");
+      }
       return { schoolId: existing.id };
     }
 
@@ -96,6 +102,9 @@ export const upsertSchool = createServerFn({ method: "POST" })
       })
       .select("id")
       .single();
-    if (error) throw new Error(error.message);
+    if (error) {
+      console.error("[onboarding.school.create]", error);
+      throw new Error("Could not create school. Please try again.");
+    }
     return { schoolId: created.id };
   });

@@ -73,7 +73,10 @@ export async function applySuccessfulPayment(reference: string) {
     .select("id, user_id, plan_id, status, amount_kobo")
     .eq("reference", reference)
     .maybeSingle();
-  if (payErr) throw new Error(payErr.message);
+  if (payErr) {
+    console.error("[payments.apply.lookup]", payErr);
+    throw new Error("Could not process payment. Please contact support.");
+  }
   if (!payment) throw new Error("Payment not found");
   if (payment.status === "success") return { alreadyApplied: true };
 
@@ -82,7 +85,10 @@ export async function applySuccessfulPayment(reference: string) {
     .select("id, interval, audience, tier")
     .eq("id", payment.plan_id)
     .single();
-  if (planErr) throw new Error(planErr.message);
+  if (planErr) {
+    console.error("[payments.apply.plan]", planErr);
+    throw new Error("Could not process payment. Please contact support.");
+  }
 
   const now = new Date();
   const expiresAt = new Date(now);

@@ -1,4 +1,4 @@
-import { createFileRoute, Outlet, redirect, useNavigate, useLocation } from "@tanstack/react-router";
+import { createFileRoute, Outlet, Navigate, useNavigate, useLocation } from "@tanstack/react-router";
 import { useAuth } from "@/lib/auth/auth-context";
 import { Logo } from "@/components/brand/logo";
 import { Button } from "@/components/ui/button";
@@ -20,7 +20,7 @@ function AuthenticatedLayout() {
     );
   }
   if (!isAuthenticated) {
-    throw redirect({ to: "/login" });
+    return <Navigate to="/login" />;
   }
 
   // Allowed routes inside the locked-account zone
@@ -33,7 +33,7 @@ function AuthenticatedLayout() {
   if (state && state !== "active" && !isAllowed) {
     // Route members to wizard first, then billing
     if (state === "pending_payment") {
-      throw redirect({ to: needsOnboarding ? "/onboarding" : "/billing" });
+      return <Navigate to={needsOnboarding ? "/onboarding" : "/billing"} />;
     }
     return (
       <LockedState

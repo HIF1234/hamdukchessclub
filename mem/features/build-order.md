@@ -42,9 +42,12 @@ type: feature
 18. ✓ Play & Puzzles page — board/puzzle/bot plug-in points (provider not yet wired)
 
 # Phase 7 — Communications & Analytics
-19. Announcements, in-app messaging w/ role restrictions
-20. Notifications (in-app + Resend email + opt-in SMS)
-21. Leaderboard, Analytics, Audit log
+19. ✓ Announcements w/ audience targeting (all/school/members/tutors/school_admins, pinned)
+    - tables: announcements (RLS: super_admin manage / school owner manage own school / audience-based view)
+20. ✓ Notifications inbox (in-app) — list, mark read, mark-all-read, delete
+    - table: notifications (RLS: user owns rows)
+    - Email (Resend) + SMS deferred until keys provided
+21. ✓ Leaderboard (rating-ranked), Analytics dashboard (signups/revenue 14d, totals, level mix), Audit log viewer
 
 # Phase 8 — Profile polish
 22. 2FA TOTP w/ QR, sessions/login history, GDPR export, deletion request

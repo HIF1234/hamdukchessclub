@@ -9,7 +9,6 @@ import {
   School,
   GraduationCap,
   Trophy,
-  CalendarDays,
   CreditCard,
   Bell,
   Settings,

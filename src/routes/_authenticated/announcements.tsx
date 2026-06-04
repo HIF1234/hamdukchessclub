@@ -39,7 +39,8 @@ export const Route = createFileRoute("/_authenticated/announcements")({
 });
 
 function AnnouncementsPage() {
-  const { roles, userId } = useAuth();
+  const { roles, user } = useAuth();
+  const userId = user?.id;
   const canPost = roles.includes("super_admin") || roles.includes("school_admin");
   const isSuper = roles.includes("super_admin");
   const fetchList = useServerFn(listAnnouncements);

@@ -18,6 +18,7 @@ import {
   BarChart3,
   MessageSquare,
   Puzzle,
+  Medal,
   type LucideIcon,
 } from "lucide-react";
 
@@ -33,7 +34,7 @@ const NAV: NavItem[] = [
   { to: "/classes", label: "Classes", icon: BookOpen },
   { to: "/tournaments", label: "Tournaments", icon: Trophy },
   { to: "/play", label: "Play & Puzzles", icon: Puzzle },
-  { to: "/calendar", label: "Calendar", icon: CalendarDays },
+  { to: "/leaderboard", label: "Leaderboard", icon: Medal },
   { to: "/members", label: "Members", icon: Users, roles: ["super_admin", "school_admin"] },
   { to: "/schools", label: "Schools", icon: School, roles: ["super_admin"] },
   { to: "/tutors", label: "Tutors", icon: GraduationCap, roles: ["super_admin", "school_admin"] },

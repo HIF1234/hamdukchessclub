@@ -1,5 +1,6 @@
 import { createServerFn } from "@tanstack/react-start";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
+import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 
 export const getPlans = createServerFn({ method: "GET" }).handler(async () => {
   const { data, error } = await supabaseAdmin
@@ -13,3 +14,21 @@ export const getPlans = createServerFn({ method: "GET" }).handler(async () => {
   }
   return data ?? [];
 });
+
+// Lets a member skip paid plans and continue on a free tier. We mark the
+// account as active so the locked-state wrapper releases the dashboard.
+// Payment can still be initiated later from the billing page.
+export const optInFreeTier = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    const { userId } = context;
+    const { error } = await supabaseAdmin
+      .from("profiles")
+      .update({ account_state: "active" })
+      .eq("id", userId);
+    if (error) {
+      console.error("[plans.optInFreeTier]", error);
+      throw new Error("Could not switch to the free tier. Please try again.");
+    }
+    return { ok: true };
+  });

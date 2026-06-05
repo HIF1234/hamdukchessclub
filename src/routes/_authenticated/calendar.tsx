@@ -6,7 +6,8 @@ import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { DashboardShell } from "@/components/dashboard/dashboard-shell";
-import { getMyCalendar, buildIcs, type CalendarEvent } from "@/lib/calendar/calendar.functions";
+import { getMyCalendar, type CalendarEvent } from "@/lib/calendar/calendar.functions";
+import { buildIcs } from "@/lib/calendar/ics";
 import { Calendar as CalendarIcon, Download, Trophy, BookOpen } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/calendar")({

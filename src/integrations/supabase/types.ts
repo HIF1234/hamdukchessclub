@@ -889,28 +889,25 @@ export type Database = {
       }
       schools_public: {
         Row: {
+          address: string | null
           created_at: string | null
           id: string | null
           name: string | null
-          program_tier:
-            | Database["public"]["Enums"]["school_program_tier"]
-            | null
+          student_count: number | null
         }
         Insert: {
+          address?: string | null
           created_at?: string | null
           id?: string | null
           name?: string | null
-          program_tier?:
-            | Database["public"]["Enums"]["school_program_tier"]
-            | null
+          student_count?: number | null
         }
         Update: {
+          address?: string | null
           created_at?: string | null
           id?: string | null
           name?: string | null
-          program_tier?:
-            | Database["public"]["Enums"]["school_program_tier"]
-            | null
+          student_count?: number | null
         }
         Relationships: []
       }

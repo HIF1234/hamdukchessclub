@@ -3,6 +3,7 @@ import { Link, useLocation, useNavigate } from "@tanstack/react-router";
 import { Logo } from "@/components/brand/logo";
 import { Button } from "@/components/ui/button";
 import { useAuth, type AppRole } from "@/lib/auth/auth-context";
+import { UpgradeNudge } from "@/components/dashboard/upgrade-nudge";
 import {
   LayoutDashboard,
   Users,
@@ -110,6 +111,7 @@ export function DashboardShell({ children }: { children: ReactNode }) {
       <main className="lg:pl-64 relative">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-10 py-8 lg:py-12">{children}</div>
       </main>
+      <UpgradeNudge />
     </div>
   );
 }

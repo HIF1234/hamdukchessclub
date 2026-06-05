@@ -13,14 +13,30 @@ export const initializePayment = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((input) => z.object({ planId: z.string().uuid() }).parse(input))
   .handler(async ({ data, context }) => {
-    const { userId, supabase } = context;
+    const { userId, claims } = context;
 
-    const { data: profile, error: pErr } = await supabase
+    // Use admin client and self-heal: if profile is missing for any reason,
+    // create it from the verified JWT claims so checkout never blocks.
+    let { data: profile } = await supabaseAdmin
       .from("profiles")
       .select("email, full_name")
       .eq("id", userId)
-      .single();
-    if (pErr || !profile) throw new Error("Profile not found");
+      .maybeSingle();
+
+    if (!profile) {
+      const email = (claims.email as string | undefined) ?? "";
+      const fullName =
+        ((claims.user_metadata as { full_name?: string; name?: string } | undefined)?.full_name) ??
+        ((claims.user_metadata as { full_name?: string; name?: string } | undefined)?.name) ??
+        (email ? email.split("@")[0] : "Member");
+      const { data: created, error: insErr } = await supabaseAdmin
+        .from("profiles")
+        .insert({ id: userId, email, full_name: fullName, account_state: "pending_payment" })
+        .select("email, full_name")
+        .single();
+      if (insErr || !created) throw new Error("Could not prepare your profile. Please refresh and try again.");
+      profile = created;
+    }
 
     const { data: plan, error: planErr } = await supabaseAdmin
       .from("plans")

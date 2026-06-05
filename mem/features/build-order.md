@@ -50,8 +50,13 @@ type: feature
 21. ✓ Leaderboard (rating-ranked), Analytics dashboard (signups/revenue 14d, totals, level mix), Audit log viewer
 
 # Phase 8 — Profile polish
-22. 2FA TOTP w/ QR, sessions/login history, GDPR export, deletion request
-23. Calendar (Google/iCal export), Redis caching layer
+22. ✓ Settings page — profile edit, GDPR JSON export, deletion request (2FA placeholder)
+    - lib/profile/profile.functions.ts: getMyProfile, updateMyProfile, exportMyData, requestAccountDeletion
+23. ✓ Subtle UpgradeNudge (bottom-left, 8s delay, dismissible) for unpaid members
+24. ✓ Billing: "Continue on free tier" link → optInFreeTier sets account_state=active
+25. ✓ Billing fix: initializePayment self-heals missing profile via supabaseAdmin
+26. Sidebar: removed Play & Puzzles (chess board/puzzles deferred to 3rd-party API per spec)
+27. Deferred: 2FA TOTP, Calendar (Google/iCal export), Redis caching layer
 
 # Integrations (plug-in later when keys provided)
 - Chess board / puzzles API

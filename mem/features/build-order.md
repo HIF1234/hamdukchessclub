@@ -56,7 +56,10 @@ type: feature
 24. ✓ Billing: "Continue on free tier" link → optInFreeTier sets account_state=active
 25. ✓ Billing fix: initializePayment self-heals missing profile via supabaseAdmin
 26. Sidebar: removed Play & Puzzles (chess board/puzzles deferred to 3rd-party API per spec)
-27. Deferred: 2FA TOTP, Calendar (Google/iCal export), Redis caching layer
+27. ✓ Calendar page (/calendar) — aggregates user's classes + tournaments, .ics export (Google/Apple/Outlook compatible)
+    - lib/calendar/calendar.functions.ts: getMyCalendar (role-aware: super_admin all; tutor sees own classes; school owner sees school events; member sees enrollments/registrations)
+    - lib/calendar/ics.ts: buildIcs helper (client-safe, RFC5545 minimal)
+28. Deferred: 2FA TOTP (needs otplib/qrcode pkgs), Redis caching layer (needs Upstash keys)
 
 # Integrations (plug-in later when keys provided)
 - Chess board / puzzles API

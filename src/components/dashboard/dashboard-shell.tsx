@@ -18,6 +18,7 @@ import {
   MessageSquare,
   BookOpen,
   Medal,
+  Calendar as CalendarIcon,
   type LucideIcon,
 } from "lucide-react";
 
@@ -33,6 +34,7 @@ const NAV: NavItem[] = [
   { to: "/classes", label: "Classes", icon: BookOpen },
   { to: "/tournaments", label: "Tournaments", icon: Trophy },
   { to: "/leaderboard", label: "Leaderboard", icon: Medal },
+  { to: "/calendar", label: "Calendar", icon: CalendarIcon },
   { to: "/members", label: "Members", icon: Users, roles: ["super_admin", "school_admin"] },
   { to: "/schools", label: "Schools", icon: School, roles: ["super_admin"] },
   { to: "/tutors", label: "Tutors", icon: GraduationCap, roles: ["super_admin", "school_admin"] },

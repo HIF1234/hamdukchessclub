@@ -8,6 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { Logo } from "@/components/brand/logo";
 import { useAuth } from "@/lib/auth/auth-context";
 import { getPlans } from "@/lib/payments/plans.functions";
+import { optInFreeTier } from "@/lib/payments/plans.functions";
 import { initializePayment } from "@/lib/payments/paystack.functions";
 import { toast } from "sonner";
 import { Check } from "lucide-react";
@@ -22,10 +23,11 @@ function formatNaira(kobo: number) {
 }
 
 function BillingPage() {
-  const { roles, signOut } = useAuth();
+  const { roles, signOut, refresh } = useAuth();
   const navigate = useNavigate();
   const fetchPlans = useServerFn(getPlans);
   const initPay = useServerFn(initializePayment);
+  const optFree = useServerFn(optInFreeTier);
   const [busyPlan, setBusyPlan] = useState<string | null>(null);
 
   const audience: "school" | "member" = roles.includes("school_admin") ? "school" : "member";
@@ -100,6 +102,25 @@ function BillingPage() {
         )}
 
         <p className="mt-10 text-center text-xs text-muted-foreground">Payments are processed securely by Paystack. You can cancel anytime from your profile.</p>
+
+        <div className="mt-4 text-center">
+          <button
+            type="button"
+            className="text-xs text-muted-foreground/70 hover:text-muted-foreground underline-offset-4 hover:underline transition-colors"
+            onClick={async () => {
+              try {
+                await optFree({});
+                await refresh();
+                toast.success("You're on the free tier. Upgrade anytime.");
+                void navigate({ to: "/dashboard" });
+              } catch (e) {
+                toast.error(e instanceof Error ? e.message : "Could not continue");
+              }
+            }}
+          >
+            Continue on the free tier for now
+          </button>
+        </div>
       </main>
     </div>
   );

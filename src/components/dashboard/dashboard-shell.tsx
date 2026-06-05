@@ -12,11 +12,9 @@ import {
   CreditCard,
   Bell,
   Settings,
-  BookOpen,
   ShieldCheck,
   BarChart3,
   MessageSquare,
-  Puzzle,
   Medal,
   type LucideIcon,
 } from "lucide-react";
@@ -30,9 +28,7 @@ interface NavItem {
 
 const NAV: NavItem[] = [
   { to: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
-  { to: "/classes", label: "Classes", icon: BookOpen },
   { to: "/tournaments", label: "Tournaments", icon: Trophy },
-  { to: "/play", label: "Play & Puzzles", icon: Puzzle },
   { to: "/leaderboard", label: "Leaderboard", icon: Medal },
   { to: "/members", label: "Members", icon: Users, roles: ["super_admin", "school_admin"] },
   { to: "/schools", label: "Schools", icon: School, roles: ["super_admin"] },

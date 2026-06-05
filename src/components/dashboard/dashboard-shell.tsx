@@ -3,6 +3,7 @@ import { Link, useLocation, useNavigate } from "@tanstack/react-router";
 import { Logo } from "@/components/brand/logo";
 import { Button } from "@/components/ui/button";
 import { useAuth, type AppRole } from "@/lib/auth/auth-context";
+import { UpgradeNudge } from "@/components/dashboard/upgrade-nudge";
 import {
   LayoutDashboard,
   Users,
@@ -12,11 +13,10 @@ import {
   CreditCard,
   Bell,
   Settings,
-  BookOpen,
   ShieldCheck,
   BarChart3,
   MessageSquare,
-  Puzzle,
+  BookOpen,
   Medal,
   type LucideIcon,
 } from "lucide-react";
@@ -32,7 +32,6 @@ const NAV: NavItem[] = [
   { to: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
   { to: "/classes", label: "Classes", icon: BookOpen },
   { to: "/tournaments", label: "Tournaments", icon: Trophy },
-  { to: "/play", label: "Play & Puzzles", icon: Puzzle },
   { to: "/leaderboard", label: "Leaderboard", icon: Medal },
   { to: "/members", label: "Members", icon: Users, roles: ["super_admin", "school_admin"] },
   { to: "/schools", label: "Schools", icon: School, roles: ["super_admin"] },
@@ -112,6 +111,7 @@ export function DashboardShell({ children }: { children: ReactNode }) {
       <main className="lg:pl-64 relative">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-10 py-8 lg:py-12">{children}</div>
       </main>
+      <UpgradeNudge />
     </div>
   );
 }

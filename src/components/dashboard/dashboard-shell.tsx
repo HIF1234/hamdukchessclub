@@ -15,6 +15,7 @@ import {
   ShieldCheck,
   BarChart3,
   MessageSquare,
+  BookOpen,
   Medal,
   type LucideIcon,
 } from "lucide-react";
@@ -28,6 +29,7 @@ interface NavItem {
 
 const NAV: NavItem[] = [
   { to: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
+  { to: "/classes", label: "Classes", icon: BookOpen },
   { to: "/tournaments", label: "Tournaments", icon: Trophy },
   { to: "/leaderboard", label: "Leaderboard", icon: Medal },
   { to: "/members", label: "Members", icon: Users, roles: ["super_admin", "school_admin"] },

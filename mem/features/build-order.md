@@ -59,7 +59,22 @@ type: feature
 27. ✓ Calendar page (/calendar) — aggregates user's classes + tournaments, .ics export (Google/Apple/Outlook compatible)
     - lib/calendar/calendar.functions.ts: getMyCalendar (role-aware: super_admin all; tutor sees own classes; school owner sees school events; member sees enrollments/registrations)
     - lib/calendar/ics.ts: buildIcs helper (client-safe, RFC5545 minimal)
-28. Deferred: 2FA TOTP (needs otplib/qrcode pkgs), Redis caching layer (needs Upstash keys)
+
+# Phase 9 — Performance & Rate-limiting ✓ SHIPPED
+28. ✓ Upstash Redis cache + ratelimit helpers (lib/cache/redis.server.ts)
+    - cached(key, ttl, loader) — graceful fallback if Redis unavailable
+    - rateLimit(id, {name, limit, window}) — sliding window via @upstash/ratelimit
+    - Applied to leaderboard (120s), plans (300s, invalidated on opt-in), paystack init (5/min/user), msg send (30/min/user)
+
+# Phase 10 — In-app Messaging ✓ SHIPPED
+29. ✓ messages table (sender_id, recipient_id, thread_id, subject, body, read_at) + RLS (sender/recipient read, sender insert, recipient mark-read)
+30. ✓ lib/messages/messages.functions.ts: listConversations, getConversation (auto-marks read), sendMessage (writes notification + audit), listMessageContacts (members → staff only; staff → anyone)
+31. ✓ /messages route: inbox + thread + compose dialog (refetch every 10–15s); sidebar entry added
+
+# Deferred
+- 2FA TOTP (needs otplib/qrcode)
+- Email/SMS notifications (Resend / SMS provider keys)
+- Realtime channel for messages (currently poll every 10s)
 
 # Integrations (plug-in later when keys provided)
 - Chess board / puzzles API

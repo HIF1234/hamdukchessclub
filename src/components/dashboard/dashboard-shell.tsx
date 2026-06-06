@@ -41,6 +41,7 @@ const NAV: NavItem[] = [
   { to: "/analytics", label: "Analytics", icon: BarChart3, roles: ["super_admin", "school_admin"] },
   { to: "/audit", label: "Audit log", icon: ShieldCheck, roles: ["super_admin"] },
   { to: "/announcements", label: "Announcements", icon: MessageSquare },
+  { to: "/messages", label: "Messages", icon: MessageSquare },
   { to: "/notifications", label: "Notifications", icon: Bell },
   { to: "/billing", label: "Billing", icon: CreditCard },
   { to: "/settings", label: "Settings", icon: Settings },

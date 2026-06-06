@@ -3,6 +3,7 @@ import { z } from "zod";
 import { getRequestHost } from "@tanstack/react-start/server";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
+import { rateLimit } from "@/lib/cache/redis.server";
 import {
   paystackInitialize,
   paystackVerify,
@@ -14,6 +15,9 @@ export const initializePayment = createServerFn({ method: "POST" })
   .inputValidator((input) => z.object({ planId: z.string().uuid() }).parse(input))
   .handler(async ({ data, context }) => {
     const { userId, claims } = context;
+
+    // Prevent rapid checkout spamming (max 5 inits per user per minute).
+    await rateLimit(userId, { name: "pay-init", limit: 5, windowSeconds: 60 });
 
     // Use admin client and self-heal: if profile is missing for any reason,
     // create it from the verified JWT claims so checkout never blocks.

@@ -38,7 +38,16 @@ function SchoolsPage() {
               {error && <tr><td colSpan={5} className="px-4 py-8 text-center text-destructive">{(error as Error).message}</td></tr>}
               {data?.map((s) => (
                 <tr key={s.id} className="border-t border-border/40 hover:bg-secondary/20">
-                  <td className="px-4 py-3 font-medium">{s.name}</td>
+                  <td className="px-4 py-3 font-medium">
+                    <div className="flex items-center gap-3">
+                      {(s as { logo_url?: string | null }).logo_url ? (
+                        <img src={(s as { logo_url?: string | null }).logo_url ?? undefined} alt="" className="size-8 rounded object-cover" />
+                      ) : (
+                        <div className="size-8 rounded bg-secondary/60" />
+                      )}
+                      <span>{s.name}</span>
+                    </div>
+                  </td>
                   <td className="px-4 py-3 text-muted-foreground">{s.contact_email ?? "—"}</td>
                   <td className="px-4 py-3 capitalize">{s.program_tier ?? "—"}</td>
                   <td className="px-4 py-3"><Badge variant={s.subscription_status === "active" ? "default" : "secondary"}>{s.subscription_status}</Badge></td>

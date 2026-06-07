@@ -72,7 +72,6 @@ type: feature
 31. ✓ /messages route: inbox + thread + compose dialog (refetch every 10–15s); sidebar entry added
 
 # Deferred
-- 2FA TOTP (needs otplib/qrcode)
 - Email/SMS notifications (Resend / SMS provider keys)
 - Realtime channel for messages (currently poll every 10s)
 
@@ -80,6 +79,12 @@ type: feature
 32. ✓ Buckets: avatars (5MB), school-logos (5MB, +svg), tournament-banners (10MB) — all public-read, RLS scoped by folder = owner id
 33. ✓ schools.logo_url + tournaments.banner_url columns
 34. ✓ lib/uploads/upload.ts (uploadImage) + components/uploads/avatar-uploader.tsx; wired into /settings; schools table shows logo thumbnail
+
+# Phase 12 — 2FA TOTP ✓ SHIPPED
+35. ✓ Uses Supabase Auth MFA (built-in) — no DB schema, no otplib/qrcode deps. QR code comes from `data.totp.qr_code` (SVG data URL).
+36. ✓ components/security/totp-settings.tsx — enroll/verify/disable flow in /settings (list factors, friendly name, 6-digit verify, unenroll w/ confirm)
+37. ✓ /verify-2fa route — challenges user post-login when AAL upgrade required; signs out option
+38. ✓ _authenticated layout gates on `mfa.getAuthenticatorAssuranceLevel()` — if currentLevel !== nextLevel and nextLevel='aal2', redirect to /verify-2fa
 
 # Integrations (plug-in later when keys provided)
 - Chess board / puzzles API

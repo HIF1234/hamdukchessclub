@@ -10,6 +10,7 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as VerifyEmailRouteImport } from './routes/verify-email'
+import { Route as Verify2faRouteImport } from './routes/verify-2fa'
 import { Route as SignupRouteImport } from './routes/signup'
 import { Route as ResetPasswordRouteImport } from './routes/reset-password'
 import { Route as LoginRouteImport } from './routes/login'
@@ -42,6 +43,11 @@ import { Route as AuthenticatedClassesClassIdRouteImport } from './routes/_authe
 const VerifyEmailRoute = VerifyEmailRouteImport.update({
   id: '/verify-email',
   path: '/verify-email',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const Verify2faRoute = Verify2faRouteImport.update({
+  id: '/verify-2fa',
+  path: '/verify-2fa',
   getParentRoute: () => rootRouteImport,
 } as any)
 const SignupRoute = SignupRouteImport.update({
@@ -197,6 +203,7 @@ export interface FileRoutesByFullPath {
   '/login': typeof LoginRoute
   '/reset-password': typeof ResetPasswordRoute
   '/signup': typeof SignupRoute
+  '/verify-2fa': typeof Verify2faRoute
   '/verify-email': typeof VerifyEmailRoute
   '/analytics': typeof AuthenticatedAnalyticsRoute
   '/announcements': typeof AuthenticatedAnnouncementsRoute
@@ -227,6 +234,7 @@ export interface FileRoutesByTo {
   '/login': typeof LoginRoute
   '/reset-password': typeof ResetPasswordRoute
   '/signup': typeof SignupRoute
+  '/verify-2fa': typeof Verify2faRoute
   '/verify-email': typeof VerifyEmailRoute
   '/analytics': typeof AuthenticatedAnalyticsRoute
   '/announcements': typeof AuthenticatedAnnouncementsRoute
@@ -259,6 +267,7 @@ export interface FileRoutesById {
   '/login': typeof LoginRoute
   '/reset-password': typeof ResetPasswordRoute
   '/signup': typeof SignupRoute
+  '/verify-2fa': typeof Verify2faRoute
   '/verify-email': typeof VerifyEmailRoute
   '/_authenticated/analytics': typeof AuthenticatedAnalyticsRoute
   '/_authenticated/announcements': typeof AuthenticatedAnnouncementsRoute
@@ -291,6 +300,7 @@ export interface FileRouteTypes {
     | '/login'
     | '/reset-password'
     | '/signup'
+    | '/verify-2fa'
     | '/verify-email'
     | '/analytics'
     | '/announcements'
@@ -321,6 +331,7 @@ export interface FileRouteTypes {
     | '/login'
     | '/reset-password'
     | '/signup'
+    | '/verify-2fa'
     | '/verify-email'
     | '/analytics'
     | '/announcements'
@@ -352,6 +363,7 @@ export interface FileRouteTypes {
     | '/login'
     | '/reset-password'
     | '/signup'
+    | '/verify-2fa'
     | '/verify-email'
     | '/_authenticated/analytics'
     | '/_authenticated/announcements'
@@ -384,6 +396,7 @@ export interface RootRouteChildren {
   LoginRoute: typeof LoginRoute
   ResetPasswordRoute: typeof ResetPasswordRoute
   SignupRoute: typeof SignupRoute
+  Verify2faRoute: typeof Verify2faRoute
   VerifyEmailRoute: typeof VerifyEmailRoute
   AuthCallbackRoute: typeof AuthCallbackRoute
   PaymentCallbackRoute: typeof PaymentCallbackRoute
@@ -397,6 +410,13 @@ declare module '@tanstack/react-router' {
       path: '/verify-email'
       fullPath: '/verify-email'
       preLoaderRoute: typeof VerifyEmailRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/verify-2fa': {
+      id: '/verify-2fa'
+      path: '/verify-2fa'
+      fullPath: '/verify-2fa'
+      preLoaderRoute: typeof Verify2faRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/signup': {
@@ -675,6 +695,7 @@ const rootRouteChildren: RootRouteChildren = {
   LoginRoute: LoginRoute,
   ResetPasswordRoute: ResetPasswordRoute,
   SignupRoute: SignupRoute,
+  Verify2faRoute: Verify2faRoute,
   VerifyEmailRoute: VerifyEmailRoute,
   AuthCallbackRoute: AuthCallbackRoute,
   PaymentCallbackRoute: PaymentCallbackRoute,

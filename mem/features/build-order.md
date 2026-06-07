@@ -76,6 +76,11 @@ type: feature
 - Email/SMS notifications (Resend / SMS provider keys)
 - Realtime channel for messages (currently poll every 10s)
 
+# Phase 11 — Storage & Uploads ✓ SHIPPED
+32. ✓ Buckets: avatars (5MB), school-logos (5MB, +svg), tournament-banners (10MB) — all public-read, RLS scoped by folder = owner id
+33. ✓ schools.logo_url + tournaments.banner_url columns
+34. ✓ lib/uploads/upload.ts (uploadImage) + components/uploads/avatar-uploader.tsx; wired into /settings; schools table shows logo thumbnail
+
 # Integrations (plug-in later when keys provided)
 - Chess board / puzzles API
 - Paystack keys

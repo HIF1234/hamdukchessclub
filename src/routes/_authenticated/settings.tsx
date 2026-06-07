@@ -11,6 +11,7 @@ import { Badge } from "@/components/ui/badge";
 import { DashboardShell } from "@/components/dashboard/dashboard-shell";
 import { useAuth } from "@/lib/auth/auth-context";
 import { AvatarUploader } from "@/components/uploads/avatar-uploader";
+import { TotpSettings } from "@/components/security/totp-settings";
 import {
   getMyProfile,
   updateMyProfile,
@@ -174,10 +175,9 @@ function SettingsPage() {
           <Card className="p-6">
             <div className="flex items-start gap-3">
               <ShieldCheck className="size-5 text-primary mt-0.5" />
-              <div>
+              <div className="flex-1">
                 <h3 className="font-display text-lg">Two-factor auth</h3>
-                <p className="text-xs text-muted-foreground mt-1">Coming soon. Add a TOTP app to secure your account.</p>
-                <Button size="sm" variant="outline" className="mt-3" disabled>Set up 2FA</Button>
+                <div className="mt-3"><TotpSettings /></div>
               </div>
             </div>
           </Card>

@@ -1,5 +1,7 @@
 import { createFileRoute, Outlet, Navigate, useNavigate, useLocation } from "@tanstack/react-router";
+import { useEffect, useState } from "react";
 import { useAuth } from "@/lib/auth/auth-context";
+import { supabase } from "@/integrations/supabase/client";
 import { Logo } from "@/components/brand/logo";
 import { Button } from "@/components/ui/button";
 
@@ -11,8 +13,22 @@ function AuthenticatedLayout() {
   const { loading, isAuthenticated, profile, signOut } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
+  const [aalChecked, setAalChecked] = useState(false);
+  const [needs2fa, setNeeds2fa] = useState(false);
 
-  if (loading) {
+  useEffect(() => {
+    if (!isAuthenticated) { setAalChecked(true); return; }
+    let cancelled = false;
+    (async () => {
+      const { data } = await supabase.auth.mfa.getAuthenticatorAssuranceLevel();
+      if (cancelled) return;
+      setNeeds2fa(!!data && data.currentLevel !== data.nextLevel && data.nextLevel === "aal2");
+      setAalChecked(true);
+    })();
+    return () => { cancelled = true; };
+  }, [isAuthenticated, location.pathname]);
+
+  if (loading || !aalChecked) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
         <div className="text-sm text-muted-foreground">Loading…</div>
@@ -21,6 +37,9 @@ function AuthenticatedLayout() {
   }
   if (!isAuthenticated) {
     return <Navigate to="/login" />;
+  }
+  if (needs2fa) {
+    return <Navigate to="/verify-2fa" />;
   }
 
   // Allowed routes inside the locked-account zone

@@ -10,6 +10,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { DashboardShell } from "@/components/dashboard/dashboard-shell";
 import { useAuth } from "@/lib/auth/auth-context";
+import { AvatarUploader } from "@/components/uploads/avatar-uploader";
 import {
   getMyProfile,
   updateMyProfile,
@@ -25,14 +26,14 @@ export const Route = createFileRoute("/_authenticated/settings")({
 });
 
 function SettingsPage() {
-  const { roles, refresh, signOut } = useAuth();
+  const { roles, refresh, signOut, user } = useAuth();
   const navigate = useNavigate();
   const fetchProfile = useServerFn(getMyProfile);
   const save = useServerFn(updateMyProfile);
   const exportFn = useServerFn(exportMyData);
   const deleteFn = useServerFn(requestAccountDeletion);
 
-  const { data, isLoading } = useQuery({ queryKey: ["my-profile"], queryFn: () => fetchProfile() });
+  const { data, isLoading, refetch } = useQuery({ queryKey: ["my-profile"], queryFn: () => fetchProfile() });
 
   const [form, setForm] = useState({
     full_name: "",
@@ -119,6 +120,17 @@ function SettingsPage() {
             <p className="text-sm text-muted-foreground">Loading…</p>
           ) : (
             <div className="space-y-4">
+              {user ? (
+                <AvatarUploader
+                  userId={user.id}
+                  currentUrl={(data as { avatar_url?: string | null } | null)?.avatar_url ?? null}
+                  fallback={form.full_name || "U"}
+                  onUploaded={async () => {
+                    await refetch();
+                    await refresh();
+                  }}
+                />
+              ) : null}
               <div className="space-y-2">
                 <Label htmlFor="full_name">Full name</Label>
                 <Input id="full_name" value={form.full_name} onChange={(e) => setForm({ ...form, full_name: e.target.value })} />

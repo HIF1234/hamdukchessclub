@@ -37,6 +37,7 @@ import { Route as AuthenticatedAuditRouteImport } from './routes/_authenticated/
 import { Route as AuthenticatedAnnouncementsRouteImport } from './routes/_authenticated/announcements'
 import { Route as AuthenticatedAnalyticsRouteImport } from './routes/_authenticated/analytics'
 import { Route as ApiPublicPaystackWebhookRouteImport } from './routes/api/public/paystack-webhook'
+import { Route as ApiPublicHamdukWebhookRouteImport } from './routes/api/public/hamduk-webhook'
 import { Route as AuthenticatedTournamentsTournamentIdRouteImport } from './routes/_authenticated/tournaments.$tournamentId'
 import { Route as AuthenticatedClassesClassIdRouteImport } from './routes/_authenticated/classes.$classId'
 
@@ -184,6 +185,11 @@ const ApiPublicPaystackWebhookRoute =
     path: '/api/public/paystack-webhook',
     getParentRoute: () => rootRouteImport,
   } as any)
+const ApiPublicHamdukWebhookRoute = ApiPublicHamdukWebhookRouteImport.update({
+  id: '/api/public/hamduk-webhook',
+  path: '/api/public/hamduk-webhook',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AuthenticatedTournamentsTournamentIdRoute =
   AuthenticatedTournamentsTournamentIdRouteImport.update({
     id: '/$tournamentId',
@@ -226,6 +232,7 @@ export interface FileRoutesByFullPath {
   '/payment/callback': typeof PaymentCallbackRoute
   '/classes/$classId': typeof AuthenticatedClassesClassIdRoute
   '/tournaments/$tournamentId': typeof AuthenticatedTournamentsTournamentIdRoute
+  '/api/public/hamduk-webhook': typeof ApiPublicHamdukWebhookRoute
   '/api/public/paystack-webhook': typeof ApiPublicPaystackWebhookRoute
 }
 export interface FileRoutesByTo {
@@ -257,6 +264,7 @@ export interface FileRoutesByTo {
   '/payment/callback': typeof PaymentCallbackRoute
   '/classes/$classId': typeof AuthenticatedClassesClassIdRoute
   '/tournaments/$tournamentId': typeof AuthenticatedTournamentsTournamentIdRoute
+  '/api/public/hamduk-webhook': typeof ApiPublicHamdukWebhookRoute
   '/api/public/paystack-webhook': typeof ApiPublicPaystackWebhookRoute
 }
 export interface FileRoutesById {
@@ -290,6 +298,7 @@ export interface FileRoutesById {
   '/payment/callback': typeof PaymentCallbackRoute
   '/_authenticated/classes/$classId': typeof AuthenticatedClassesClassIdRoute
   '/_authenticated/tournaments/$tournamentId': typeof AuthenticatedTournamentsTournamentIdRoute
+  '/api/public/hamduk-webhook': typeof ApiPublicHamdukWebhookRoute
   '/api/public/paystack-webhook': typeof ApiPublicPaystackWebhookRoute
 }
 export interface FileRouteTypes {
@@ -323,6 +332,7 @@ export interface FileRouteTypes {
     | '/payment/callback'
     | '/classes/$classId'
     | '/tournaments/$tournamentId'
+    | '/api/public/hamduk-webhook'
     | '/api/public/paystack-webhook'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -354,6 +364,7 @@ export interface FileRouteTypes {
     | '/payment/callback'
     | '/classes/$classId'
     | '/tournaments/$tournamentId'
+    | '/api/public/hamduk-webhook'
     | '/api/public/paystack-webhook'
   id:
     | '__root__'
@@ -386,6 +397,7 @@ export interface FileRouteTypes {
     | '/payment/callback'
     | '/_authenticated/classes/$classId'
     | '/_authenticated/tournaments/$tournamentId'
+    | '/api/public/hamduk-webhook'
     | '/api/public/paystack-webhook'
   fileRoutesById: FileRoutesById
 }
@@ -400,6 +412,7 @@ export interface RootRouteChildren {
   VerifyEmailRoute: typeof VerifyEmailRoute
   AuthCallbackRoute: typeof AuthCallbackRoute
   PaymentCallbackRoute: typeof PaymentCallbackRoute
+  ApiPublicHamdukWebhookRoute: typeof ApiPublicHamdukWebhookRoute
   ApiPublicPaystackWebhookRoute: typeof ApiPublicPaystackWebhookRoute
 }
 
@@ -601,6 +614,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicPaystackWebhookRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/hamduk-webhook': {
+      id: '/api/public/hamduk-webhook'
+      path: '/api/public/hamduk-webhook'
+      fullPath: '/api/public/hamduk-webhook'
+      preLoaderRoute: typeof ApiPublicHamdukWebhookRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/_authenticated/tournaments/$tournamentId': {
       id: '/_authenticated/tournaments/$tournamentId'
       path: '/$tournamentId'
@@ -699,18 +719,9 @@ const rootRouteChildren: RootRouteChildren = {
   VerifyEmailRoute: VerifyEmailRoute,
   AuthCallbackRoute: AuthCallbackRoute,
   PaymentCallbackRoute: PaymentCallbackRoute,
+  ApiPublicHamdukWebhookRoute: ApiPublicHamdukWebhookRoute,
   ApiPublicPaystackWebhookRoute: ApiPublicPaystackWebhookRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}

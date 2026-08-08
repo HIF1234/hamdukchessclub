@@ -31,6 +31,7 @@ import { Route as AuthenticatedMembersRouteImport } from './routes/_authenticate
 import { Route as AuthenticatedLeaderboardRouteImport } from './routes/_authenticated/leaderboard'
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
 import { Route as AuthenticatedClassesRouteImport } from './routes/_authenticated/classes'
+import { Route as AuthenticatedChessRouteImport } from './routes/_authenticated/chess'
 import { Route as AuthenticatedCalendarRouteImport } from './routes/_authenticated/calendar'
 import { Route as AuthenticatedBillingRouteImport } from './routes/_authenticated/billing'
 import { Route as AuthenticatedAuditRouteImport } from './routes/_authenticated/audit'
@@ -153,6 +154,11 @@ const AuthenticatedClassesRoute = AuthenticatedClassesRouteImport.update({
   path: '/classes',
   getParentRoute: () => AuthenticatedRoute,
 } as any)
+const AuthenticatedChessRoute = AuthenticatedChessRouteImport.update({
+  id: '/chess',
+  path: '/chess',
+  getParentRoute: () => AuthenticatedRoute,
+} as any)
 const AuthenticatedCalendarRoute = AuthenticatedCalendarRouteImport.update({
   id: '/calendar',
   path: '/calendar',
@@ -216,6 +222,7 @@ export interface FileRoutesByFullPath {
   '/audit': typeof AuthenticatedAuditRoute
   '/billing': typeof AuthenticatedBillingRoute
   '/calendar': typeof AuthenticatedCalendarRoute
+  '/chess': typeof AuthenticatedChessRoute
   '/classes': typeof AuthenticatedClassesRouteWithChildren
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/leaderboard': typeof AuthenticatedLeaderboardRoute
@@ -248,6 +255,7 @@ export interface FileRoutesByTo {
   '/audit': typeof AuthenticatedAuditRoute
   '/billing': typeof AuthenticatedBillingRoute
   '/calendar': typeof AuthenticatedCalendarRoute
+  '/chess': typeof AuthenticatedChessRoute
   '/classes': typeof AuthenticatedClassesRouteWithChildren
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/leaderboard': typeof AuthenticatedLeaderboardRoute
@@ -282,6 +290,7 @@ export interface FileRoutesById {
   '/_authenticated/audit': typeof AuthenticatedAuditRoute
   '/_authenticated/billing': typeof AuthenticatedBillingRoute
   '/_authenticated/calendar': typeof AuthenticatedCalendarRoute
+  '/_authenticated/chess': typeof AuthenticatedChessRoute
   '/_authenticated/classes': typeof AuthenticatedClassesRouteWithChildren
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
   '/_authenticated/leaderboard': typeof AuthenticatedLeaderboardRoute
@@ -316,6 +325,7 @@ export interface FileRouteTypes {
     | '/audit'
     | '/billing'
     | '/calendar'
+    | '/chess'
     | '/classes'
     | '/dashboard'
     | '/leaderboard'
@@ -348,6 +358,7 @@ export interface FileRouteTypes {
     | '/audit'
     | '/billing'
     | '/calendar'
+    | '/chess'
     | '/classes'
     | '/dashboard'
     | '/leaderboard'
@@ -381,6 +392,7 @@ export interface FileRouteTypes {
     | '/_authenticated/audit'
     | '/_authenticated/billing'
     | '/_authenticated/calendar'
+    | '/_authenticated/chess'
     | '/_authenticated/classes'
     | '/_authenticated/dashboard'
     | '/_authenticated/leaderboard'
@@ -572,6 +584,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedClassesRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
+    '/_authenticated/chess': {
+      id: '/_authenticated/chess'
+      path: '/chess'
+      fullPath: '/chess'
+      preLoaderRoute: typeof AuthenticatedChessRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
     '/_authenticated/calendar': {
       id: '/_authenticated/calendar'
       path: '/calendar'
@@ -670,6 +689,7 @@ interface AuthenticatedRouteChildren {
   AuthenticatedAuditRoute: typeof AuthenticatedAuditRoute
   AuthenticatedBillingRoute: typeof AuthenticatedBillingRoute
   AuthenticatedCalendarRoute: typeof AuthenticatedCalendarRoute
+  AuthenticatedChessRoute: typeof AuthenticatedChessRoute
   AuthenticatedClassesRoute: typeof AuthenticatedClassesRouteWithChildren
   AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
   AuthenticatedLeaderboardRoute: typeof AuthenticatedLeaderboardRoute
@@ -690,6 +710,7 @@ const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
   AuthenticatedAuditRoute: AuthenticatedAuditRoute,
   AuthenticatedBillingRoute: AuthenticatedBillingRoute,
   AuthenticatedCalendarRoute: AuthenticatedCalendarRoute,
+  AuthenticatedChessRoute: AuthenticatedChessRoute,
   AuthenticatedClassesRoute: AuthenticatedClassesRouteWithChildren,
   AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,
   AuthenticatedLeaderboardRoute: AuthenticatedLeaderboardRoute,

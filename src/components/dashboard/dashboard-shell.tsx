@@ -19,6 +19,8 @@ import {
   BookOpen,
   Medal,
   Calendar as CalendarIcon,
+  Swords,
+  Plug,
   type LucideIcon,
 } from "lucide-react";
 
@@ -33,6 +35,7 @@ const NAV: NavItem[] = [
   { to: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
   { to: "/classes", label: "Classes", icon: BookOpen },
   { to: "/tournaments", label: "Tournaments", icon: Trophy },
+  { to: "/chess", label: "My chess", icon: Swords },
   { to: "/leaderboard", label: "Leaderboard", icon: Medal },
   { to: "/calendar", label: "Calendar", icon: CalendarIcon },
   { to: "/members", label: "Members", icon: Users, roles: ["super_admin", "school_admin"] },
@@ -40,6 +43,7 @@ const NAV: NavItem[] = [
   { to: "/tutors", label: "Tutors", icon: GraduationCap, roles: ["super_admin", "school_admin"] },
   { to: "/analytics", label: "Analytics", icon: BarChart3, roles: ["super_admin", "school_admin"] },
   { to: "/audit", label: "Audit log", icon: ShieldCheck, roles: ["super_admin"] },
+  { to: "/integrations", label: "Integrations", icon: Plug, roles: ["super_admin"] },
   { to: "/announcements", label: "Announcements", icon: MessageSquare },
   { to: "/messages", label: "Messages", icon: MessageSquare },
   { to: "/notifications", label: "Notifications", icon: Bell },

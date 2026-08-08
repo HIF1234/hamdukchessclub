@@ -29,14 +29,17 @@ import { Route as AuthenticatedNotificationsRouteImport } from './routes/_authen
 import { Route as AuthenticatedMessagesRouteImport } from './routes/_authenticated/messages'
 import { Route as AuthenticatedMembersRouteImport } from './routes/_authenticated/members'
 import { Route as AuthenticatedLeaderboardRouteImport } from './routes/_authenticated/leaderboard'
+import { Route as AuthenticatedIntegrationsRouteImport } from './routes/_authenticated/integrations'
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
 import { Route as AuthenticatedClassesRouteImport } from './routes/_authenticated/classes'
+import { Route as AuthenticatedChessRouteImport } from './routes/_authenticated/chess'
 import { Route as AuthenticatedCalendarRouteImport } from './routes/_authenticated/calendar'
 import { Route as AuthenticatedBillingRouteImport } from './routes/_authenticated/billing'
 import { Route as AuthenticatedAuditRouteImport } from './routes/_authenticated/audit'
 import { Route as AuthenticatedAnnouncementsRouteImport } from './routes/_authenticated/announcements'
 import { Route as AuthenticatedAnalyticsRouteImport } from './routes/_authenticated/analytics'
 import { Route as ApiPublicPaystackWebhookRouteImport } from './routes/api/public/paystack-webhook'
+import { Route as ApiPublicHamdukWebhookRouteImport } from './routes/api/public/hamduk-webhook'
 import { Route as AuthenticatedTournamentsTournamentIdRouteImport } from './routes/_authenticated/tournaments.$tournamentId'
 import { Route as AuthenticatedClassesClassIdRouteImport } from './routes/_authenticated/classes.$classId'
 
@@ -142,6 +145,12 @@ const AuthenticatedLeaderboardRoute =
     path: '/leaderboard',
     getParentRoute: () => AuthenticatedRoute,
   } as any)
+const AuthenticatedIntegrationsRoute =
+  AuthenticatedIntegrationsRouteImport.update({
+    id: '/integrations',
+    path: '/integrations',
+    getParentRoute: () => AuthenticatedRoute,
+  } as any)
 const AuthenticatedDashboardRoute = AuthenticatedDashboardRouteImport.update({
   id: '/dashboard',
   path: '/dashboard',
@@ -150,6 +159,11 @@ const AuthenticatedDashboardRoute = AuthenticatedDashboardRouteImport.update({
 const AuthenticatedClassesRoute = AuthenticatedClassesRouteImport.update({
   id: '/classes',
   path: '/classes',
+  getParentRoute: () => AuthenticatedRoute,
+} as any)
+const AuthenticatedChessRoute = AuthenticatedChessRouteImport.update({
+  id: '/chess',
+  path: '/chess',
   getParentRoute: () => AuthenticatedRoute,
 } as any)
 const AuthenticatedCalendarRoute = AuthenticatedCalendarRouteImport.update({
@@ -184,6 +198,11 @@ const ApiPublicPaystackWebhookRoute =
     path: '/api/public/paystack-webhook',
     getParentRoute: () => rootRouteImport,
   } as any)
+const ApiPublicHamdukWebhookRoute = ApiPublicHamdukWebhookRouteImport.update({
+  id: '/api/public/hamduk-webhook',
+  path: '/api/public/hamduk-webhook',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AuthenticatedTournamentsTournamentIdRoute =
   AuthenticatedTournamentsTournamentIdRouteImport.update({
     id: '/$tournamentId',
@@ -210,8 +229,10 @@ export interface FileRoutesByFullPath {
   '/audit': typeof AuthenticatedAuditRoute
   '/billing': typeof AuthenticatedBillingRoute
   '/calendar': typeof AuthenticatedCalendarRoute
+  '/chess': typeof AuthenticatedChessRoute
   '/classes': typeof AuthenticatedClassesRouteWithChildren
   '/dashboard': typeof AuthenticatedDashboardRoute
+  '/integrations': typeof AuthenticatedIntegrationsRoute
   '/leaderboard': typeof AuthenticatedLeaderboardRoute
   '/members': typeof AuthenticatedMembersRoute
   '/messages': typeof AuthenticatedMessagesRoute
@@ -226,6 +247,7 @@ export interface FileRoutesByFullPath {
   '/payment/callback': typeof PaymentCallbackRoute
   '/classes/$classId': typeof AuthenticatedClassesClassIdRoute
   '/tournaments/$tournamentId': typeof AuthenticatedTournamentsTournamentIdRoute
+  '/api/public/hamduk-webhook': typeof ApiPublicHamdukWebhookRoute
   '/api/public/paystack-webhook': typeof ApiPublicPaystackWebhookRoute
 }
 export interface FileRoutesByTo {
@@ -241,8 +263,10 @@ export interface FileRoutesByTo {
   '/audit': typeof AuthenticatedAuditRoute
   '/billing': typeof AuthenticatedBillingRoute
   '/calendar': typeof AuthenticatedCalendarRoute
+  '/chess': typeof AuthenticatedChessRoute
   '/classes': typeof AuthenticatedClassesRouteWithChildren
   '/dashboard': typeof AuthenticatedDashboardRoute
+  '/integrations': typeof AuthenticatedIntegrationsRoute
   '/leaderboard': typeof AuthenticatedLeaderboardRoute
   '/members': typeof AuthenticatedMembersRoute
   '/messages': typeof AuthenticatedMessagesRoute
@@ -257,6 +281,7 @@ export interface FileRoutesByTo {
   '/payment/callback': typeof PaymentCallbackRoute
   '/classes/$classId': typeof AuthenticatedClassesClassIdRoute
   '/tournaments/$tournamentId': typeof AuthenticatedTournamentsTournamentIdRoute
+  '/api/public/hamduk-webhook': typeof ApiPublicHamdukWebhookRoute
   '/api/public/paystack-webhook': typeof ApiPublicPaystackWebhookRoute
 }
 export interface FileRoutesById {
@@ -274,8 +299,10 @@ export interface FileRoutesById {
   '/_authenticated/audit': typeof AuthenticatedAuditRoute
   '/_authenticated/billing': typeof AuthenticatedBillingRoute
   '/_authenticated/calendar': typeof AuthenticatedCalendarRoute
+  '/_authenticated/chess': typeof AuthenticatedChessRoute
   '/_authenticated/classes': typeof AuthenticatedClassesRouteWithChildren
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
+  '/_authenticated/integrations': typeof AuthenticatedIntegrationsRoute
   '/_authenticated/leaderboard': typeof AuthenticatedLeaderboardRoute
   '/_authenticated/members': typeof AuthenticatedMembersRoute
   '/_authenticated/messages': typeof AuthenticatedMessagesRoute
@@ -290,6 +317,7 @@ export interface FileRoutesById {
   '/payment/callback': typeof PaymentCallbackRoute
   '/_authenticated/classes/$classId': typeof AuthenticatedClassesClassIdRoute
   '/_authenticated/tournaments/$tournamentId': typeof AuthenticatedTournamentsTournamentIdRoute
+  '/api/public/hamduk-webhook': typeof ApiPublicHamdukWebhookRoute
   '/api/public/paystack-webhook': typeof ApiPublicPaystackWebhookRoute
 }
 export interface FileRouteTypes {
@@ -307,8 +335,10 @@ export interface FileRouteTypes {
     | '/audit'
     | '/billing'
     | '/calendar'
+    | '/chess'
     | '/classes'
     | '/dashboard'
+    | '/integrations'
     | '/leaderboard'
     | '/members'
     | '/messages'
@@ -323,6 +353,7 @@ export interface FileRouteTypes {
     | '/payment/callback'
     | '/classes/$classId'
     | '/tournaments/$tournamentId'
+    | '/api/public/hamduk-webhook'
     | '/api/public/paystack-webhook'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -338,8 +369,10 @@ export interface FileRouteTypes {
     | '/audit'
     | '/billing'
     | '/calendar'
+    | '/chess'
     | '/classes'
     | '/dashboard'
+    | '/integrations'
     | '/leaderboard'
     | '/members'
     | '/messages'
@@ -354,6 +387,7 @@ export interface FileRouteTypes {
     | '/payment/callback'
     | '/classes/$classId'
     | '/tournaments/$tournamentId'
+    | '/api/public/hamduk-webhook'
     | '/api/public/paystack-webhook'
   id:
     | '__root__'
@@ -370,8 +404,10 @@ export interface FileRouteTypes {
     | '/_authenticated/audit'
     | '/_authenticated/billing'
     | '/_authenticated/calendar'
+    | '/_authenticated/chess'
     | '/_authenticated/classes'
     | '/_authenticated/dashboard'
+    | '/_authenticated/integrations'
     | '/_authenticated/leaderboard'
     | '/_authenticated/members'
     | '/_authenticated/messages'
@@ -386,6 +422,7 @@ export interface FileRouteTypes {
     | '/payment/callback'
     | '/_authenticated/classes/$classId'
     | '/_authenticated/tournaments/$tournamentId'
+    | '/api/public/hamduk-webhook'
     | '/api/public/paystack-webhook'
   fileRoutesById: FileRoutesById
 }
@@ -400,6 +437,7 @@ export interface RootRouteChildren {
   VerifyEmailRoute: typeof VerifyEmailRoute
   AuthCallbackRoute: typeof AuthCallbackRoute
   PaymentCallbackRoute: typeof PaymentCallbackRoute
+  ApiPublicHamdukWebhookRoute: typeof ApiPublicHamdukWebhookRoute
   ApiPublicPaystackWebhookRoute: typeof ApiPublicPaystackWebhookRoute
 }
 
@@ -545,6 +583,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedLeaderboardRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
+    '/_authenticated/integrations': {
+      id: '/_authenticated/integrations'
+      path: '/integrations'
+      fullPath: '/integrations'
+      preLoaderRoute: typeof AuthenticatedIntegrationsRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
     '/_authenticated/dashboard': {
       id: '/_authenticated/dashboard'
       path: '/dashboard'
@@ -557,6 +602,13 @@ declare module '@tanstack/react-router' {
       path: '/classes'
       fullPath: '/classes'
       preLoaderRoute: typeof AuthenticatedClassesRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
+    '/_authenticated/chess': {
+      id: '/_authenticated/chess'
+      path: '/chess'
+      fullPath: '/chess'
+      preLoaderRoute: typeof AuthenticatedChessRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
     '/_authenticated/calendar': {
@@ -599,6 +651,13 @@ declare module '@tanstack/react-router' {
       path: '/api/public/paystack-webhook'
       fullPath: '/api/public/paystack-webhook'
       preLoaderRoute: typeof ApiPublicPaystackWebhookRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/hamduk-webhook': {
+      id: '/api/public/hamduk-webhook'
+      path: '/api/public/hamduk-webhook'
+      fullPath: '/api/public/hamduk-webhook'
+      preLoaderRoute: typeof ApiPublicHamdukWebhookRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/_authenticated/tournaments/$tournamentId': {
@@ -650,8 +709,10 @@ interface AuthenticatedRouteChildren {
   AuthenticatedAuditRoute: typeof AuthenticatedAuditRoute
   AuthenticatedBillingRoute: typeof AuthenticatedBillingRoute
   AuthenticatedCalendarRoute: typeof AuthenticatedCalendarRoute
+  AuthenticatedChessRoute: typeof AuthenticatedChessRoute
   AuthenticatedClassesRoute: typeof AuthenticatedClassesRouteWithChildren
   AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
+  AuthenticatedIntegrationsRoute: typeof AuthenticatedIntegrationsRoute
   AuthenticatedLeaderboardRoute: typeof AuthenticatedLeaderboardRoute
   AuthenticatedMembersRoute: typeof AuthenticatedMembersRoute
   AuthenticatedMessagesRoute: typeof AuthenticatedMessagesRoute
@@ -670,8 +731,10 @@ const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
   AuthenticatedAuditRoute: AuthenticatedAuditRoute,
   AuthenticatedBillingRoute: AuthenticatedBillingRoute,
   AuthenticatedCalendarRoute: AuthenticatedCalendarRoute,
+  AuthenticatedChessRoute: AuthenticatedChessRoute,
   AuthenticatedClassesRoute: AuthenticatedClassesRouteWithChildren,
   AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,
+  AuthenticatedIntegrationsRoute: AuthenticatedIntegrationsRoute,
   AuthenticatedLeaderboardRoute: AuthenticatedLeaderboardRoute,
   AuthenticatedMembersRoute: AuthenticatedMembersRoute,
   AuthenticatedMessagesRoute: AuthenticatedMessagesRoute,
@@ -699,18 +762,9 @@ const rootRouteChildren: RootRouteChildren = {
   VerifyEmailRoute: VerifyEmailRoute,
   AuthCallbackRoute: AuthCallbackRoute,
   PaymentCallbackRoute: PaymentCallbackRoute,
+  ApiPublicHamdukWebhookRoute: ApiPublicHamdukWebhookRoute,
   ApiPublicPaystackWebhookRoute: ApiPublicPaystackWebhookRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}

@@ -13,3 +13,4 @@ Account states: unverified, pending_payment, active, expired, suspended. Locked 
 ## Memories
 - [Full feature spec](mem://features/full-spec) — Complete feature list across all modules (auth, profiles, onboarding, dashboards per role, member/school/tutor/class mgmt, tournaments, live classroom, payments, announcements, analytics, audit, notifications, messaging, leaderboard, calendar, chess play)
 - [Build order](mem://features/build-order) — Phased implementation plan
+- [Hamduk Chess API](mem://features/hamduk-chess-api) — External chess platform integration: ratings/games sync, embed tokens, webhooks, tables and routes

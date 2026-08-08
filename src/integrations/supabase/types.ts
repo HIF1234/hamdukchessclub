@@ -221,6 +221,222 @@ export type Database = {
           },
         ]
       }
+      hamduk_accounts: {
+        Row: {
+          admin_note: string | null
+          created_at: string
+          hamduk_username: string
+          id: string
+          last_synced_at: string | null
+          link_status: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          admin_note?: string | null
+          created_at?: string
+          hamduk_username: string
+          id?: string
+          last_synced_at?: string | null
+          link_status?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          admin_note?: string | null
+          created_at?: string
+          hamduk_username?: string
+          id?: string
+          last_synced_at?: string | null
+          link_status?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      hamduk_embeds: {
+        Row: {
+          config: Json
+          created_at: string
+          created_by: string | null
+          embed_url: string
+          expires_at: string | null
+          id: string
+          iframe_html: string | null
+          kind: string
+          label: string
+          token: string
+        }
+        Insert: {
+          config?: Json
+          created_at?: string
+          created_by?: string | null
+          embed_url: string
+          expires_at?: string | null
+          id?: string
+          iframe_html?: string | null
+          kind: string
+          label: string
+          token: string
+        }
+        Update: {
+          config?: Json
+          created_at?: string
+          created_by?: string | null
+          embed_url?: string
+          expires_at?: string | null
+          id?: string
+          iframe_html?: string | null
+          kind?: string
+          label?: string
+          token?: string
+        }
+        Relationships: []
+      }
+      hamduk_games: {
+        Row: {
+          black: string | null
+          black_rating_delta: number | null
+          end_reason: string | null
+          game_id: string
+          id: string
+          moves: number | null
+          pgn: string | null
+          played_at: string | null
+          rated: boolean | null
+          result: string | null
+          status: string | null
+          synced_at: string
+          time_control: string | null
+          user_id: string
+          variant: string | null
+          white: string | null
+          white_rating_delta: number | null
+        }
+        Insert: {
+          black?: string | null
+          black_rating_delta?: number | null
+          end_reason?: string | null
+          game_id: string
+          id?: string
+          moves?: number | null
+          pgn?: string | null
+          played_at?: string | null
+          rated?: boolean | null
+          result?: string | null
+          status?: string | null
+          synced_at?: string
+          time_control?: string | null
+          user_id: string
+          variant?: string | null
+          white?: string | null
+          white_rating_delta?: number | null
+        }
+        Update: {
+          black?: string | null
+          black_rating_delta?: number | null
+          end_reason?: string | null
+          game_id?: string
+          id?: string
+          moves?: number | null
+          pgn?: string | null
+          played_at?: string | null
+          rated?: boolean | null
+          result?: string | null
+          status?: string | null
+          synced_at?: string
+          time_control?: string | null
+          user_id?: string
+          variant?: string | null
+          white?: string | null
+          white_rating_delta?: number | null
+        }
+        Relationships: []
+      }
+      hamduk_ratings: {
+        Row: {
+          breakdown: Json
+          classical_rating: number | null
+          country: string | null
+          hamduk_username: string
+          id: string
+          synced_at: string
+          user_id: string
+        }
+        Insert: {
+          breakdown?: Json
+          classical_rating?: number | null
+          country?: string | null
+          hamduk_username: string
+          id?: string
+          synced_at?: string
+          user_id: string
+        }
+        Update: {
+          breakdown?: Json
+          classical_rating?: number | null
+          country?: string | null
+          hamduk_username?: string
+          id?: string
+          synced_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      hamduk_webhook_events: {
+        Row: {
+          event: string
+          id: string
+          payload: Json | null
+          received_at: string
+          signature_valid: boolean
+        }
+        Insert: {
+          event: string
+          id?: string
+          payload?: Json | null
+          received_at?: string
+          signature_valid?: boolean
+        }
+        Update: {
+          event?: string
+          id?: string
+          payload?: Json | null
+          received_at?: string
+          signature_valid?: boolean
+        }
+        Relationships: []
+      }
+      hamduk_webhooks: {
+        Row: {
+          created_at: string
+          disabled: boolean
+          events: string[]
+          id: string
+          remote_id: string
+          signing_secret: string
+          url: string
+        }
+        Insert: {
+          created_at?: string
+          disabled?: boolean
+          events?: string[]
+          id?: string
+          remote_id: string
+          signing_secret: string
+          url: string
+        }
+        Update: {
+          created_at?: string
+          disabled?: boolean
+          events?: string[]
+          id?: string
+          remote_id?: string
+          signing_secret?: string
+          url?: string
+        }
+        Relationships: []
+      }
       messages: {
         Row: {
           body: string

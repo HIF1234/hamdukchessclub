@@ -52,7 +52,7 @@ export const linkChessAccount = createServerFn({ method: "POST" })
     await rateLimit(userId, { name: "hamduk-link", limit: 10, windowSeconds: 60 });
 
     const { error } = await supabaseAdmin.from("hamduk_accounts").upsert(
-      { user_id: userId, hamduk_username: data.username, link_status: "pending" },
+      { user_id: userId, hamduk_username: data.username, link_status: "pending", sync_error: null },
       { onConflict: "user_id" },
     );
     if (error) fail("link", error);

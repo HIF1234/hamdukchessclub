@@ -122,7 +122,10 @@ function ChessPage() {
                 <p className="text-xs uppercase tracking-wider text-muted-foreground">Linked account</p>
                 <p className="mt-1 font-display text-2xl">{data.link.hamduk_username}</p>
                 <div className="mt-2 flex items-center gap-2">
-                  <Badge variant="secondary" className="capitalize">
+                  <Badge
+                    variant={data.link.link_status === "error" ? "destructive" : "secondary"}
+                    className="capitalize"
+                  >
                     {data.link.link_status}
                   </Badge>
                   <span className="text-xs text-muted-foreground">
@@ -131,6 +134,20 @@ function ChessPage() {
                       : "Not synced yet"}
                   </span>
                 </div>
+                {data.link.link_status === "error" && (
+                  <div className="mt-3 max-w-lg rounded-md border border-destructive/40 bg-destructive/10 p-3">
+                    <p className="text-xs font-medium uppercase tracking-wider text-destructive">
+                      Last sync failed
+                    </p>
+                    <p className="mt-1 text-sm text-muted-foreground">
+                      {data.link.sync_error ?? "Hamduk Chess could not be reached."}
+                    </p>
+                    <p className="mt-2 text-xs text-muted-foreground">
+                      If this keeps happening, the Hamduk Chess platform may be having trouble with this
+                      username — try Refresh, or contact a club admin.
+                    </p>
+                  </div>
+                )}
               </div>
               <div className="text-right">
                 <p className="text-xs uppercase tracking-wider text-muted-foreground">Classical</p>

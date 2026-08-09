@@ -2,14 +2,15 @@ import { createFileRoute } from "@tanstack/react-router";
 import { createHmac, timingSafeEqual } from "crypto";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
 
-function verify(body: string, header: string | null, secret: string): boolean {
-  if (!header) return false;
+function verify(body: string, header: string | null, secret: string | undefined): boolean {
+  if (!header || !secret) return false;
   const expected = createHmac("sha256", secret).update(body).digest("hex");
   const provided = header.replace(/^sha256=/, "");
   const a = Buffer.from(provided);
   const b = Buffer.from(expected);
   return a.length === b.length && timingSafeEqual(a, b);
 }
+
 
 export const Route = createFileRoute("/api/public/hamduk-webhook")({
   server: {
@@ -18,14 +19,21 @@ export const Route = createFileRoute("/api/public/hamduk-webhook")({
         const body = await request.text();
         const signature =
           request.headers.get("x-hamduk-signature") ?? request.headers.get("x-signature");
+        const globalSecret = process.env["HAMDUK_CHESS_WEBHOOK_SECRET"];
 
         const { data: hooks } = await supabaseAdmin
           .from("hamduk_webhooks")
           .select("signing_secret")
           .eq("disabled", false);
 
-        const valid = (hooks ?? []).some((h: any) => verify(body, signature, h.signing_secret));
+        const secrets = [
+          globalSecret,
+          ...(hooks ?? []).map((h: any) => h.signing_secret),
+        ].filter((s): s is string => Boolean(s));
+
+        const valid = secrets.some((secret) => verify(body, signature, secret));
         if (!valid) return new Response("Invalid signature", { status: 401 });
+
 
         let payload: { event?: string; data?: Record<string, any> };
         try {

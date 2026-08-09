@@ -229,6 +229,7 @@ export type Database = {
           id: string
           last_synced_at: string | null
           link_status: string
+          sync_error: string | null
           updated_at: string
           user_id: string
         }
@@ -239,6 +240,7 @@ export type Database = {
           id?: string
           last_synced_at?: string | null
           link_status?: string
+          sync_error?: string | null
           updated_at?: string
           user_id: string
         }
@@ -249,6 +251,7 @@ export type Database = {
           id?: string
           last_synced_at?: string | null
           link_status?: string
+          sync_error?: string | null
           updated_at?: string
           user_id?: string
         }

@@ -62,7 +62,8 @@ export async function hamduk<T>(
     if (res.status === 429) throw new Error("Hamduk Chess rate limit reached. Please try again shortly.");
     if (res.status === 401) throw new Error("Hamduk Chess rejected the API key.");
     if (res.status === 403) throw new Error("The Hamduk Chess API key is missing a required scope.");
-    throw new Error("Hamduk Chess request failed. Please try again.");
+    const detail = err?.message || err?.error || (text ? text.slice(0, 200) : "no response body");
+    throw new Error(`Hamduk Chess request failed (HTTP ${res.status}): ${detail}`);
   }
 
   return parsed as T;

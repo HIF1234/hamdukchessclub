@@ -186,9 +186,15 @@ function IntegrationsPage() {
                         <td className="px-4 py-3 font-medium">{a.full_name}</td>
                         <td className="px-4 py-3 text-muted-foreground">{a.hamduk_username}</td>
                         <td className="px-4 py-3">
-                          <Badge variant="secondary" className="capitalize">
+                          <Badge
+                            variant={a.link_status === "error" ? "destructive" : "secondary"}
+                            className="capitalize"
+                          >
                             {a.link_status}
                           </Badge>
+                          {a.link_status === "error" && a.sync_error && (
+                            <p className="mt-1 max-w-xs text-xs text-muted-foreground">{a.sync_error}</p>
+                          )}
                         </td>
                         <td className="px-4 py-3 text-muted-foreground">
                           {a.last_synced_at ? new Date(a.last_synced_at).toLocaleString() : "—"}

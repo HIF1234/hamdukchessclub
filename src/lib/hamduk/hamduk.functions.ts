@@ -192,7 +192,7 @@ export const getIntegrationStatus = createServerFn({ method: "GET" })
     const [{ data: accounts }, { data: webhooks }, { data: events }] = await Promise.all([
       supabaseAdmin
         .from("hamduk_accounts")
-        .select("user_id, hamduk_username, link_status, last_synced_at")
+        .select("user_id, hamduk_username, link_status, last_synced_at, sync_error")
         .order("created_at", { ascending: false })
         .limit(200),
       supabaseAdmin

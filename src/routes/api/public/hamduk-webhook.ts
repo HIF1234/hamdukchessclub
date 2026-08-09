@@ -2,14 +2,15 @@ import { createFileRoute } from "@tanstack/react-router";
 import { createHmac, timingSafeEqual } from "crypto";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
 
-function verify(body: string, header: string | null, secret: string): boolean {
-  if (!header) return false;
+function verify(body: string, header: string | null, secret: string | undefined): boolean {
+  if (!header || !secret) return false;
   const expected = createHmac("sha256", secret).update(body).digest("hex");
   const provided = header.replace(/^sha256=/, "");
   const a = Buffer.from(provided);
   const b = Buffer.from(expected);
   return a.length === b.length && timingSafeEqual(a, b);
 }
+
 
 export const Route = createFileRoute("/api/public/hamduk-webhook")({
   server: {

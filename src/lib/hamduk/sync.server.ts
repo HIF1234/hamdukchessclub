@@ -20,16 +20,40 @@ export async function isSuperAdmin(supabase: any, userId: string): Promise<boole
 export async function getLink(userId: string) {
   const { data } = await supabaseAdmin
     .from("hamduk_accounts")
-    .select("id, hamduk_username, link_status, last_synced_at, admin_note")
+    .select("id, hamduk_username, link_status, last_synced_at, admin_note, sync_error")
     .eq("user_id", userId)
     .maybeSingle();
   return data;
 }
 
+export function syncErrorMessage(error: unknown): string {
+  if (error instanceof Error) {
+    if (error.message === "NOT_LINKED") {
+      return "This Hamduk Chess username isn't linked to the club on the Hamduk side yet, so ratings can't be fetched.";
+    }
+    return error.message;
+  }
+  return "Unknown error while syncing with Hamduk Chess.";
+}
+
+// Record a failed sync so the member (and admins) can see why, instead of a permanent "pending".
+export async function markSyncFailed(userId: string, error: unknown) {
+  await supabaseAdmin
+    .from("hamduk_accounts")
+    .update({ link_status: "error", sync_error: syncErrorMessage(error).slice(0, 500) })
+    .eq("user_id", userId);
+}
+
 // Pull rating + recent games from Hamduk and cache them locally.
 // Polling model — game.completed / rating.changed webhooks don't fire yet.
 export async function syncMember(userId: string, username: string) {
-  const rating = await fetchRating(username);
+  let rating;
+  try {
+    rating = await fetchRating(username);
+  } catch (e) {
+    await markSyncFailed(userId, e);
+    throw e;
+  }
 
   await supabaseAdmin.from("hamduk_ratings").upsert(
     {
@@ -83,7 +107,7 @@ export async function syncMember(userId: string, username: string) {
 
   await supabaseAdmin
     .from("hamduk_accounts")
-    .update({ link_status: "linked", last_synced_at: new Date().toISOString() })
+    .update({ link_status: "linked", sync_error: null, last_synced_at: new Date().toISOString() })
     .eq("user_id", userId);
 
   return { rating: rating.classical_rating ?? null, games: gameCount, rate: lastRateInfo() };

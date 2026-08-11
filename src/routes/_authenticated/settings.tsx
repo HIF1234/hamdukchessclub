@@ -12,6 +12,13 @@ import { DashboardShell } from "@/components/dashboard/dashboard-shell";
 import { useAuth } from "@/lib/auth/auth-context";
 import { AvatarUploader } from "@/components/uploads/avatar-uploader";
 import { TotpSettings } from "@/components/security/totp-settings";
+import { NotificationPrefsPanel } from "@/components/security/notification-prefs";
+import { LoginHistory } from "@/components/security/login-history";
+import {
+  ChangeEmailForm,
+  ChangePasswordForm,
+  SignOutOtherDevices,
+} from "@/components/security/account-security";
 import {
   getMyProfile,
   updateMyProfile,
@@ -19,7 +26,7 @@ import {
   requestAccountDeletion,
 } from "@/lib/profile/profile.functions";
 import { toast } from "sonner";
-import { Download, Trash2, ShieldCheck } from "lucide-react";
+import { Download, Trash2, ShieldCheck, Bell, KeyRound, Mail, History } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/settings")({
   head: () => ({ meta: [{ title: "Settings — Hamduk Chess Club" }] }),
@@ -171,7 +178,54 @@ function SettingsPage() {
           )}
         </Card>
 
+        <Card className="p-6 lg:col-span-2">
+          <div className="flex items-start gap-3">
+            <Bell className="size-5 text-primary mt-0.5" />
+            <div className="flex-1">
+              <h2 className="font-display text-xl">Notification preferences</h2>
+              <p className="text-xs text-muted-foreground mt-1">Choose how you hear about each kind of club activity.</p>
+              <div className="mt-4"><NotificationPrefsPanel /></div>
+            </div>
+          </div>
+        </Card>
+
+        <Card className="p-6 lg:col-span-2">
+          <div className="flex items-start gap-3">
+            <History className="size-5 text-primary mt-0.5" />
+            <div className="flex-1">
+              <div className="flex flex-wrap items-center justify-between gap-3">
+                <div>
+                  <h2 className="font-display text-xl">Sign-in activity</h2>
+                  <p className="text-xs text-muted-foreground mt-1">Recent sign-ins on your account, newest first.</p>
+                </div>
+                <SignOutOtherDevices />
+              </div>
+              <div className="mt-4"><LoginHistory /></div>
+            </div>
+          </div>
+        </Card>
+
         <div className="space-y-6">
+          <Card className="p-6">
+            <div className="flex items-start gap-3">
+              <Mail className="size-5 text-primary mt-0.5" />
+              <div className="flex-1">
+                <h3 className="font-display text-lg">Change email</h3>
+                <div className="mt-3"><ChangeEmailForm currentEmail={user?.email ?? ""} /></div>
+              </div>
+            </div>
+          </Card>
+
+          <Card className="p-6">
+            <div className="flex items-start gap-3">
+              <KeyRound className="size-5 text-primary mt-0.5" />
+              <div className="flex-1">
+                <h3 className="font-display text-lg">Change password</h3>
+                <div className="mt-3"><ChangePasswordForm email={user?.email ?? ""} /></div>
+              </div>
+            </div>
+          </Card>
+
           <Card className="p-6">
             <div className="flex items-start gap-3">
               <ShieldCheck className="size-5 text-primary mt-0.5" />

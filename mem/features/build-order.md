@@ -93,3 +93,10 @@ type: feature
 - Google Calendar API
 - SMS provider
 - Redis (Upstash recommended)
+
+# Phase 13 — Account security & preferences ✓ SHIPPED
+39. ✓ profiles.notification_prefs jsonb (channels: in_app/email/sms × events: class_reminders, tournament_alerts, payment_due, results, announcements, messages)
+40. ✓ login_events table (device/browser/ip/location/method) + RLS (own rows; super_admin all); written by recordLoginEvent server fn via supabaseAdmin, called after password + Google sign-in
+41. ✓ lib/account/account.functions.ts: getNotificationPrefs, updateNotificationPrefs, recordLoginEvent, listLoginHistory
+42. ✓ /settings additions: notification prefs matrix, sign-in activity list, "Sign out other devices" (supabase signOut scope:others), change email (re-verify via /auth/callback), change password (re-auth with current password first)
+43. Note: app is dark-only by design — no light/dark toggle. SMS delivery pending provider keys.

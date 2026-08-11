@@ -2,6 +2,7 @@ import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
 import { z } from "zod";
 import { supabase } from "@/integrations/supabase/client";
+import { recordLoginEvent } from "@/lib/account/account.functions";
 import { AuthShell } from "@/components/auth/auth-shell";
 import { GoogleButton } from "@/components/auth/google-button";
 import { Button } from "@/components/ui/button";
@@ -48,6 +49,8 @@ function LoginPage() {
     if (!remember) {
       // Best-effort: sessions persist by default; clearing on tab close is non-trivial. Leave for v2.
     }
+    // Fire-and-forget audit of the sign-in (device, browser, IP, location).
+    void recordLoginEvent({ data: { method: "password" } }).catch(() => {});
     toast.success("Welcome back");
     void navigate({ to: "/dashboard" });
   };

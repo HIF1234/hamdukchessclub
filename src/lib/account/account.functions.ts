@@ -90,15 +90,15 @@ export const recordLoginEvent = createServerFn({ method: "POST" })
   )
   .handler(async ({ context, data }) => {
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    const { getWebRequest } = await import("@tanstack/react-start/server");
-    const request = getWebRequest();
-    const ua = request?.headers.get("user-agent") ?? "";
+    const { getRequest } = await import("@tanstack/react-start/server");
+    const request = getRequest();
+    const ua = request.headers.get("user-agent") ?? "";
     const ip =
-      request?.headers.get("cf-connecting-ip") ??
-      request?.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ??
+      request.headers.get("cf-connecting-ip") ??
+      request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ??
       null;
     const location =
-      [request?.headers.get("cf-ipcity"), request?.headers.get("cf-ipcountry")].filter(Boolean).join(", ") ||
+      [request.headers.get("cf-ipcity"), request.headers.get("cf-ipcountry")].filter(Boolean).join(", ") ||
       null;
     const { browser, device } = parseAgent(ua);
 

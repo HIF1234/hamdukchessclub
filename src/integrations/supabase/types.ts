@@ -440,6 +440,48 @@ export type Database = {
         }
         Relationships: []
       }
+      login_events: {
+        Row: {
+          browser: string | null
+          created_at: string
+          device: string | null
+          email: string | null
+          id: string
+          ip_address: string | null
+          location: string | null
+          method: string
+          success: boolean
+          user_agent: string | null
+          user_id: string
+        }
+        Insert: {
+          browser?: string | null
+          created_at?: string
+          device?: string | null
+          email?: string | null
+          id?: string
+          ip_address?: string | null
+          location?: string | null
+          method?: string
+          success?: boolean
+          user_agent?: string | null
+          user_id: string
+        }
+        Update: {
+          browser?: string | null
+          created_at?: string
+          device?: string | null
+          email?: string | null
+          id?: string
+          ip_address?: string | null
+          location?: string | null
+          method?: string
+          success?: boolean
+          user_agent?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       messages: {
         Row: {
           body: string
@@ -640,6 +682,7 @@ export type Database = {
           membership_level:
             | Database["public"]["Enums"]["membership_level"]
             | null
+          notification_prefs: Json
           onboarding_completed: boolean | null
           onboarding_step: number
           phone: string | null
@@ -669,6 +712,7 @@ export type Database = {
           membership_level?:
             | Database["public"]["Enums"]["membership_level"]
             | null
+          notification_prefs?: Json
           onboarding_completed?: boolean | null
           onboarding_step?: number
           phone?: string | null
@@ -698,6 +742,7 @@ export type Database = {
           membership_level?:
             | Database["public"]["Enums"]["membership_level"]
             | null
+          notification_prefs?: Json
           onboarding_completed?: boolean | null
           onboarding_step?: number
           phone?: string | null

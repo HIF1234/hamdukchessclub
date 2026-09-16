@@ -1,5 +1,6 @@
 import type { ReactNode } from "react";
 import { Link, useLocation, useNavigate } from "@tanstack/react-router";
+import { useState } from "react";
 import { Logo } from "@/components/brand/logo";
 import { Button } from "@/components/ui/button";
 import { useAuth, type AppRole } from "@/lib/auth/auth-context";
@@ -55,6 +56,7 @@ export function DashboardShell({ children }: { children: ReactNode }) {
   const { profile, roles, signOut } = useAuth();
   const location = useLocation();
   const navigate = useNavigate();
+  const [mobileOpen, setMobileOpen] = useState(false);
 
   const items = NAV.filter((i) => !i.roles || i.roles.some((r) => roles.includes(r)));
   const primaryRole = roles[0] ?? "member";
@@ -109,10 +111,12 @@ export function DashboardShell({ children }: { children: ReactNode }) {
       <header className="lg:hidden sticky top-0 z-20 border-b border-border/50 backdrop-blur bg-background/80">
         <div className="flex items-center justify-between px-4 h-14">
           <Logo />
-          <Button variant="ghost" size="sm" onClick={async () => { await signOut(); void navigate({ to: "/login" }); }}>
-            Sign out
-          </Button>
+          <div className="flex items-center gap-2">
+            <Button variant="ghost" size="sm" onClick={() => setMobileOpen((v) => !v)} aria-expanded={mobileOpen}>Menu</Button>
+            <Button variant="ghost" size="sm" onClick={async () => { await signOut(); void navigate({ to: "/login" }); }}>Sign out</Button>
+          </div>
         </div>
+        {mobileOpen && <nav className="border-t border-border/50 px-3 py-3 space-y-1">{items.map((item) => { const Icon = item.icon; return <Link key={item.to} to={item.to} onClick={() => setMobileOpen(false)} className="flex items-center gap-3 px-3 py-2 rounded-md text-sm text-muted-foreground hover:bg-sidebar-accent hover:text-foreground"><Icon className="h-4 w-4" />{item.label}</Link>; })}</nav>}
       </header>
 
       <main className="lg:pl-64 relative">

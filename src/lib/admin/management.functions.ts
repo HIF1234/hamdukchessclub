@@ -22,12 +22,26 @@ export const listMembers = createServerFn({ method: "GET" })
     if (!roles.includes("super_admin") && !roles.includes("school_admin")) {
       throw new Error("Forbidden");
     }
-    const client = roles.includes("super_admin") ? supabaseAdmin : supabase;
-    const { data, error } = await client
+    let memberIds: string[] | null = null;
+    if (!roles.includes("super_admin")) {
+      const { data: school } = await supabaseAdmin.from("schools").select("id").eq("owner_user_id", userId).maybeSingle();
+      if (!school) return [];
+      const { data: memberships, error: membershipError } = await supabase
+        .from("school_memberships")
+        .select("user_id")
+        .eq("school_id", school.id);
+      if (membershipError) fail("listMembers.memberships", membershipError);
+      memberIds = (memberships ?? []).map((membership) => membership.user_id);
+      if (memberIds.length === 0) return [];
+    }
+    const client = roles.includes("super_admin") ? supabaseAdmin : supabaseAdmin;
+    let query = client
       .from("profiles")
       .select("id, full_name, email, account_state, membership_level, chess_rating, membership_expires_at, created_at")
       .order("created_at", { ascending: false })
       .limit(500);
+    if (memberIds) query = query.in("id", memberIds);
+    const { data, error } = await query;
     if (error) fail("listMembers", error);
     return data ?? [];
   });
@@ -119,6 +133,20 @@ export const enrollInClass = createServerFn({ method: "POST" })
   .inputValidator((d) => z.object({ class_id: z.string().uuid() }).parse(d))
   .handler(async ({ context, data }) => {
     const { supabase, userId } = context;
+    const { data: cls, error: classError } = await supabase
+      .from("classes")
+      .select("capacity, status")
+      .eq("id", data.class_id)
+      .maybeSingle();
+    if (classError) fail("enrollInClass.read", classError);
+    if (!cls) throw new Error("Class not found");
+    if (cls.status === "cancelled" || cls.status === "completed") throw new Error("This class is no longer open for enrolment.");
+    const { count, error: countError } = await supabase
+      .from("class_enrollments")
+      .select("id", { count: "exact", head: true })
+      .eq("class_id", data.class_id);
+    if (countError) fail("enrollInClass.count", countError);
+    if (cls.capacity !== null && (count ?? 0) >= cls.capacity) throw new Error("This class is full.");
     const { error } = await supabase
       .from("class_enrollments")
       .insert({ class_id: data.class_id, user_id: userId });
@@ -174,6 +202,20 @@ export const registerForTournament = createServerFn({ method: "POST" })
   .inputValidator((d) => z.object({ tournament_id: z.string().uuid() }).parse(d))
   .handler(async ({ context, data }) => {
     const { supabase, userId } = context;
+    const { data: tournament, error: tournamentError } = await supabase
+      .from("tournaments")
+      .select("max_participants, status")
+      .eq("id", data.tournament_id)
+      .maybeSingle();
+    if (tournamentError) fail("registerForTournament.read", tournamentError);
+    if (!tournament) throw new Error("Tournament not found");
+    if (tournament.status !== "registration_open") throw new Error("Registration is closed.");
+    const { count, error: countError } = await supabase
+      .from("tournament_participants")
+      .select("id", { count: "exact", head: true })
+      .eq("tournament_id", data.tournament_id);
+    if (countError) fail("registerForTournament.count", countError);
+    if (tournament.max_participants !== null && (count ?? 0) >= tournament.max_participants) throw new Error("This tournament is full.");
     const { error } = await supabase
       .from("tournament_participants")
       .insert({ tournament_id: data.tournament_id, user_id: userId });

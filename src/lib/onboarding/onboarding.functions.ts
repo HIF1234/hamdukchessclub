@@ -15,6 +15,9 @@ const memberSchema = z.object({
   chess_goals: z.string().max(500).optional().nullable(),
   timezone: z.string().max(80).optional().nullable(),
   language: z.string().max(20).optional().nullable(),
+  membership_type: z.enum(["club_only", "club_plus_lecture"]).optional().nullable(),
+  billing_cycle: z.enum(["monthly", "annual"]).optional().nullable(),
+  lecture_level: z.enum(["beginner", "intermediate", "advanced"]).optional().nullable(),
   onboarding_step: z.number().int().min(0).max(10),
   onboarding_completed: z.boolean().optional(),
 });
@@ -38,6 +41,9 @@ export const saveOnboarding = createServerFn({ method: "POST" })
         chess_goals: data.chess_goals ?? null,
         timezone: data.timezone ?? undefined,
         language: data.language ?? undefined,
+        membership_type: data.membership_type ?? null,
+        billing_cycle: data.billing_cycle ?? null,
+        lecture_level: data.lecture_level ?? null,
         onboarding_step: data.onboarding_step,
         onboarding_completed: data.onboarding_completed ?? false,
       })
@@ -56,6 +62,7 @@ const schoolSchema = z.object({
   contact_phone: z.string().max(40).optional().nullable(),
   address: z.string().max(300).optional().nullable(),
   student_count: z.number().int().min(0).max(100000).optional(),
+  program_tier: z.enum(["starter", "standard", "premium"]).optional().nullable(),
 });
 
 export const upsertSchool = createServerFn({ method: "POST" })
@@ -80,6 +87,7 @@ export const upsertSchool = createServerFn({ method: "POST" })
           contact_phone: data.contact_phone ?? null,
           address: data.address ?? null,
           student_count: data.student_count ?? null,
+          program_tier: data.program_tier ?? null,
         })
         .eq("id", existing.id);
       if (error) {
@@ -99,6 +107,7 @@ export const upsertSchool = createServerFn({ method: "POST" })
         contact_phone: data.contact_phone ?? null,
         address: data.address ?? null,
         student_count: data.student_count ?? null,
+          program_tier: data.program_tier ?? null,
       })
       .select("id")
       .single();

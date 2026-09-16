@@ -16,6 +16,10 @@ export interface ProfileLite {
   membership_level: "beginner" | "intermediate" | "advanced";
   chess_rating: number;
   onboarding_completed: boolean;
+  onboarding_step: number;
+  membership_type: "club_only" | "club_plus_lecture" | null;
+  billing_cycle: "monthly" | "annual" | null;
+  lecture_level: "beginner" | "intermediate" | "advanced" | null;
 }
 
 interface AuthContextValue {
@@ -43,7 +47,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const loadProfile = async (uid: string) => {
     const [profileRes, rolesRes] = await Promise.all([
-      supabase.from("profiles").select("id, full_name, email, avatar_url, account_state, membership_level, chess_rating, onboarding_completed").eq("id", uid).maybeSingle(),
+      supabase.from("profiles").select("id, full_name, email, avatar_url, account_state, membership_level, chess_rating, onboarding_completed, onboarding_step, membership_type, billing_cycle, lecture_level").eq("id", uid).maybeSingle(),
       supabase.from("user_roles").select("role").eq("user_id", uid),
     ]);
     setProfile((profileRes.data as ProfileLite | null) ?? null);

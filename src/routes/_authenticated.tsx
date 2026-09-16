@@ -17,6 +17,26 @@ function AuthenticatedLayout() {
   const [needs2fa, setNeeds2fa] = useState(false);
 
   useEffect(() => {
+    if (!isAuthenticated) return;
+    const timeoutMs = 30 * 60 * 1000;
+    let timer: ReturnType<typeof setTimeout>;
+    const reset = () => {
+      clearTimeout(timer);
+      timer = setTimeout(async () => {
+        await signOut();
+        void navigate({ to: "/login" });
+      }, timeoutMs);
+    };
+    const events = ["pointerdown", "keydown", "touchstart"];
+    events.forEach((event) => window.addEventListener(event, reset));
+    reset();
+    return () => {
+      clearTimeout(timer);
+      events.forEach((event) => window.removeEventListener(event, reset));
+    };
+  }, [isAuthenticated, navigate, signOut]);
+
+  useEffect(() => {
     if (!isAuthenticated) { setAalChecked(true); return; }
     let cancelled = false;
     (async () => {
@@ -49,6 +69,8 @@ function AuthenticatedLayout() {
   const state = profile?.account_state;
   const needsOnboarding = profile && !profile.onboarding_completed;
 
+  const userEmail = profile?.email ?? undefined;
+
   if (state && state !== "active" && !isAllowed) {
     // Route members to wizard first, then billing
     if (state === "pending_payment") {
@@ -58,7 +80,11 @@ function AuthenticatedLayout() {
       <LockedState
         state={state}
         onSignOut={async () => { await signOut(); void navigate({ to: "/login" }); }}
-        onCta={() => {
+        onCta={async () => {
+          if (state === "unverified" && userEmail) {
+            const { error } = await supabase.auth.resend({ type: "signup", email: userEmail, options: { emailRedirectTo: `${window.location.origin}/auth/callback` } });
+            if (!error) return;
+          }
           if (state === "expired") void navigate({ to: "/billing" });
         }}
       />

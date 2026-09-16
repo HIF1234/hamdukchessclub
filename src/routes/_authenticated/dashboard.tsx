@@ -46,7 +46,7 @@ function Dashboard() {
 
       {primaryRole === "super_admin" && <SuperAdminView stats={stats} />}
       {primaryRole === "school_admin" && <SchoolAdminView stats={stats} />}
-      {primaryRole === "tutor" && <TutorView />}
+       {primaryRole === "tutor" && <TutorView stats={stats} />}
       {primaryRole === "member" && <MemberView />}
     </DashboardShell>
   );

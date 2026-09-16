@@ -111,7 +111,7 @@ function LockedState({ state, onSignOut, onCta }: { state: string; onSignOut: ()
         <h1 className="mt-10 font-display text-4xl text-foreground">{c.title}</h1>
         <p className="mt-4 text-muted-foreground">{c.body}</p>
         <div className="mt-8 flex flex-col gap-2">
-          <Button size="lg" className="w-full" onClick={onCta} disabled={state === "unverified" || state === "suspended"}>{c.cta}</Button>
+          <Button size="lg" className="w-full" onClick={onCta} disabled={state === "suspended"}>{c.cta}</Button>
           <Button variant="ghost" onClick={onSignOut}>Sign out</Button>
         </div>
       </div>

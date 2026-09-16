@@ -8,6 +8,8 @@ export type RoleStats = {
   payments?: { totalKobo: number; last30Kobo: number; successCount: number };
   mySchool?: { id: string; name: string; studentCount: number | null } | null;
   mySchoolMembers?: number;
+  mySchoolClasses?: number;
+  tutor?: { classesThisWeek: number; students: number };
 };
 
 export const getDashboardStats = createServerFn({ method: "GET" })
@@ -64,7 +66,20 @@ export const getDashboardStats = createServerFn({ method: "GET" })
           .select("id", { count: "exact", head: true })
           .eq("school_id", school.id);
         out.mySchoolMembers = count ?? 0;
+        const { count: classCount } = await supabase.from("classes").select("id", { count: "exact", head: true }).eq("school_id", school.id).in("status", ["scheduled", "in_progress"]);
+        out.mySchoolClasses = classCount ?? 0;
       }
+    }
+
+    if (roles.includes("tutor")) {
+      const { data: classes } = await supabase.from("classes").select("id").eq("tutor_id", userId).in("status", ["scheduled", "in_progress"]);
+      const classIds = (classes ?? []).map((c) => c.id);
+      let students = 0;
+      if (classIds.length) {
+        const { data: enrollments } = await supabase.from("class_enrollments").select("user_id").in("class_id", classIds);
+        students = new Set((enrollments ?? []).map((e) => e.user_id)).size;
+      }
+      out.tutor = { classesThisWeek: classes?.length ?? 0, students };
     }
 
     return out;

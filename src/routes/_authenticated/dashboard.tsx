@@ -7,6 +7,7 @@ import { useAuth } from "@/lib/auth/auth-context";
 import { DashboardShell } from "@/components/dashboard/dashboard-shell";
 import { getDashboardStats, type RoleStats } from "@/lib/dashboard/dashboard.functions";
 import { Trophy, Users, School, CreditCard, GraduationCap, BookOpen, Sparkles } from "lucide-react";
+import { Link } from "@tanstack/react-router";
 
 export const Route = createFileRoute("/_authenticated/dashboard")({
   head: () => ({ meta: [{ title: "Dashboard — Hamduk Chess Club" }] }),
@@ -97,7 +98,7 @@ function SuperAdminView({ stats }: { stats?: RoleStats }) {
         <StatCard label="Revenue (all time)" value={p ? formatNaira(p.totalKobo) : "—"} hint={`${p?.successCount ?? 0} successful payments`} icon={CreditCard} />
         <StatCard label="Revenue (30d)" value={p ? formatNaira(p.last30Kobo) : "—"} hint="Last 30 days" icon={Sparkles} />
       </div>
-      <div className="grid lg:grid-cols-2 gap-4 mt-6">
+       <div className="grid lg:grid-cols-2 gap-4 mt-6">
         <Card className="p-6">
           <h3 className="font-display text-xl mb-1">Membership health</h3>
           <p className="text-sm text-muted-foreground mb-4">Account-state breakdown across all members.</p>
@@ -107,15 +108,15 @@ function SuperAdminView({ stats }: { stats?: RoleStats }) {
             <Row label="Expired" value={m?.expired ?? 0} tone="muted" />
           </ul>
         </Card>
-        <Card className="p-6">
-          <h3 className="font-display text-xl mb-1">Coming next</h3>
-          <p className="text-sm text-muted-foreground mb-4">Phase 4 will bring full member, school, tutor, class, and tournament management — all from this shell.</p>
+         <Card className="p-6">
+           <h3 className="font-display text-xl mb-1">Operations</h3>
+           <p className="text-sm text-muted-foreground mb-4">Open a workspace to manage the club.</p>
           <div className="flex gap-2 flex-wrap">
-            <Badge>Member mgmt</Badge>
-            <Badge>School mgmt</Badge>
-            <Badge>Tutors</Badge>
-            <Badge>Classes</Badge>
-            <Badge>Tournaments</Badge>
+             <Link to="/members"><Badge>Member mgmt</Badge></Link>
+             <Link to="/schools"><Badge>School mgmt</Badge></Link>
+             <Link to="/tutors"><Badge>Tutors</Badge></Link>
+             <Link to="/classes"><Badge>Classes</Badge></Link>
+             <Link to="/tournaments"><Badge>Tournaments</Badge></Link>
           </div>
         </Card>
       </div>
@@ -130,27 +131,27 @@ function SchoolAdminView({ stats }: { stats?: RoleStats }) {
       <div className="grid sm:grid-cols-3 gap-4">
         <StatCard label="My school" value={school?.name ?? "Not set up"} icon={School} />
         <StatCard label="Students enrolled" value={String(stats?.mySchoolMembers ?? 0)} hint={school?.studentCount ? `Capacity: ${school.studentCount}` : ""} icon={Users} />
-        <StatCard label="Active classes" value="—" hint="Coming in Phase 5" icon={BookOpen} />
+         <StatCard label="Active classes" value={String(stats?.mySchoolClasses ?? 0)} hint="Scheduled or in progress" icon={BookOpen} />
       </div>
-      <Card className="p-6 mt-6">
+       <Card className="p-6 mt-6">
         <h3 className="font-display text-xl mb-1">Your school workspace</h3>
-        <p className="text-sm text-muted-foreground">Enrol students, schedule classes, and track progress as Phase 4–5 ship.</p>
+         <p className="text-sm text-muted-foreground">Enrol students, schedule classes, and track progress from your school workspace.</p>
       </Card>
     </>
   );
 }
 
-function TutorView() {
+function TutorView({ stats }: { stats?: RoleStats }) {
   return (
     <>
       <div className="grid sm:grid-cols-3 gap-4">
-        <StatCard label="Classes this week" value="—" icon={BookOpen} />
-        <StatCard label="Students" value="—" icon={GraduationCap} />
-        <StatCard label="Avg rating gain" value="—" icon={Sparkles} />
+         <StatCard label="Active classes" value={String(stats?.tutor?.classesThisWeek ?? 0)} icon={BookOpen} />
+         <StatCard label="Students" value={String(stats?.tutor?.students ?? 0)} icon={GraduationCap} />
+         <StatCard label="Teaching tools" value="Ready" hint="Attendance and notes" icon={Sparkles} />
       </div>
       <Card className="p-6 mt-6">
         <h3 className="font-display text-xl mb-1">Tutor workspace</h3>
-        <p className="text-sm text-muted-foreground">Your class schedule, attendance, and session notes will appear here once Phase 5 ships.</p>
+         <p className="text-sm text-muted-foreground">Your class schedule, attendance, and session notes are available from Classes.</p>
       </Card>
     </>
   );
@@ -169,8 +170,8 @@ function MemberView() {
         <h3 className="font-display text-xl mb-2">Welcome to the club</h3>
         <p className="text-sm text-muted-foreground">Classes, tournaments, casual play, and puzzles roll out in the next phases. Your membership keeps everything in one place.</p>
         <div className="mt-4 flex gap-2">
-          <Button variant="secondary" size="sm" disabled>Browse classes</Button>
-          <Button variant="secondary" size="sm" disabled>Upcoming tournaments</Button>
+           <Link to="/classes"><Button variant="secondary" size="sm">Browse classes</Button></Link>
+           <Link to="/tournaments"><Button variant="secondary" size="sm">Upcoming tournaments</Button></Link>
         </div>
       </Card>
     </>

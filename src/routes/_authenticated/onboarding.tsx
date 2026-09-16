@@ -30,6 +30,9 @@ type MemberForm = {
   chess_goals: string;
   timezone: string;
   language: string;
+  membership_type: "club_only" | "club_plus_lecture";
+  billing_cycle: "monthly" | "annual";
+  lecture_level: "beginner" | "intermediate" | "advanced";
 };
 
 type SchoolForm = {
@@ -39,6 +42,7 @@ type SchoolForm = {
   contact_phone: string;
   address: string;
   student_count: number;
+  program_tier: "starter" | "standard" | "premium";
 };
 
 function OnboardingWizard() {
@@ -48,8 +52,8 @@ function OnboardingWizard() {
   const saveSchool = useServerFn(upsertSchool);
   const isSchool = roles.includes("school_admin");
 
-  const totalSteps = isSchool ? 3 : 4;
-  const [step, setStep] = useState(1);
+  const totalSteps = isSchool ? 4 : 5;
+  const [step, setStep] = useState(() => Math.min(Math.max(profile?.onboarding_step ?? 1, 1), totalSteps));
   const [submitting, setSubmitting] = useState(false);
 
   const tz = typeof Intl !== "undefined" ? Intl.DateTimeFormat().resolvedOptions().timeZone : "UTC";
@@ -66,6 +70,9 @@ function OnboardingWizard() {
     chess_goals: "",
     timezone: tz || "UTC",
     language: "en",
+    membership_type: profile?.membership_type ?? "club_only",
+    billing_cycle: profile?.billing_cycle ?? "monthly",
+    lecture_level: profile?.lecture_level ?? "beginner",
   });
 
   const [school, setSchool] = useState<SchoolForm>({
@@ -75,6 +82,7 @@ function OnboardingWizard() {
     contact_phone: "",
     address: "",
     student_count: 30,
+    program_tier: "starter",
   });
 
   async function persist(nextStep: number, completed = false) {
@@ -149,9 +157,52 @@ function OnboardingWizard() {
             </div>
           )}
 
-          {step === 2 && !isSchool && (
+           {step === 2 && !isSchool && (
             <div className="space-y-4">
-              <h2 className="font-display text-2xl">Chess profile</h2>
+               <h2 className="font-display text-2xl">Membership type</h2>
+               <p className="text-sm text-muted-foreground">Choose the club experience you want to start with.</p>
+               <Select value={member.membership_type} onValueChange={(v) => setMember({ ...member, membership_type: v as MemberForm["membership_type"] })}>
+                 <SelectTrigger><SelectValue /></SelectTrigger>
+                 <SelectContent>
+                   <SelectItem value="club_only">Club membership</SelectItem>
+                   <SelectItem value="club_plus_lecture">Club + lecture tier</SelectItem>
+                 </SelectContent>
+               </Select>
+             </div>
+           )}
+
+           {step === 3 && !isSchool && (
+             <div className="space-y-4">
+               <h2 className="font-display text-2xl">Billing cycle</h2>
+               <p className="text-sm text-muted-foreground">Annual membership includes the best value.</p>
+               <Select value={member.billing_cycle} onValueChange={(v) => setMember({ ...member, billing_cycle: v as MemberForm["billing_cycle"] })}>
+                 <SelectTrigger><SelectValue /></SelectTrigger>
+                 <SelectContent>
+                   <SelectItem value="monthly">Monthly</SelectItem>
+                   <SelectItem value="annual">Annual</SelectItem>
+                 </SelectContent>
+               </Select>
+             </div>
+           )}
+
+           {step === 4 && !isSchool && (
+             <div className="space-y-4">
+               <h2 className="font-display text-2xl">Lecture level</h2>
+               <p className="text-sm text-muted-foreground">You can change this later as your game develops.</p>
+               <Select value={member.lecture_level} onValueChange={(v) => setMember({ ...member, lecture_level: v as MemberForm["lecture_level"] })}>
+                 <SelectTrigger><SelectValue /></SelectTrigger>
+                 <SelectContent>
+                   <SelectItem value="beginner">Beginner</SelectItem>
+                   <SelectItem value="intermediate">Intermediate</SelectItem>
+                   <SelectItem value="advanced">Advanced</SelectItem>
+                 </SelectContent>
+               </Select>
+             </div>
+           )}
+
+           {step === 5 && !isSchool && (
+             <div className="space-y-4">
+               <h2 className="font-display text-2xl">Review your setup</h2>
               <div className="grid grid-cols-2 gap-4">
                 <Field label="Current rating">
                   <Input type="number" value={member.chess_rating} onChange={(e) => setMember({ ...member, chess_rating: Number(e.target.value) })} />
@@ -176,7 +227,7 @@ function OnboardingWizard() {
             </div>
           )}
 
-          {step === 2 && isSchool && (
+           {step === 2 && isSchool && (
             <div className="space-y-4">
               <h2 className="font-display text-2xl">School details</h2>
               <Field label="School name">
@@ -199,10 +250,20 @@ function OnboardingWizard() {
               <Field label="Approx. student count">
                 <Input type="number" value={school.student_count} onChange={(e) => setSchool({ ...school, student_count: Number(e.target.value) })} />
               </Field>
+               <Field label="Program tier">
+                 <Select value={school.program_tier} onValueChange={(v) => setSchool({ ...school, program_tier: v as SchoolForm["program_tier"] })}>
+                   <SelectTrigger><SelectValue /></SelectTrigger>
+                   <SelectContent>
+                     <SelectItem value="starter">Starter</SelectItem>
+                     <SelectItem value="standard">Standard</SelectItem>
+                     <SelectItem value="premium">Premium</SelectItem>
+                   </SelectContent>
+                 </Select>
+               </Field>
             </div>
           )}
 
-          {step === 3 && (
+           {step === 3 && isSchool && (
             <div className="space-y-4">
               <h2 className="font-display text-2xl">Preferences</h2>
               <div className="grid grid-cols-2 gap-4">
@@ -224,21 +285,22 @@ function OnboardingWizard() {
             </div>
           )}
 
-          {step === 4 && !isSchool && (
-            <div className="space-y-3">
-              <h2 className="font-display text-2xl">Review</h2>
-              <Summary k="Name" v={member.full_name} />
-              <Summary k="Phone" v={member.phone || "—"} />
-              <Summary k="Location" v={member.location || "—"} />
-              <Summary k="Rating" v={String(member.chess_rating)} />
-              <Summary k="Level" v={member.membership_level} />
-              <Summary k="Goals" v={member.chess_goals || "—"} />
-              <p className="pt-4 text-sm text-muted-foreground">Next, choose a plan to unlock the club.</p>
-            </div>
-          )}
+           {step === 4 && isSchool && (
+             <div className="space-y-3">
+               <h2 className="font-display text-2xl">Review your school</h2>
+               <Summary k="School" v={school.name || "—"} />
+               <Summary k="Program tier" v={school.program_tier} />
+               <Summary k="Students" v={String(school.student_count || 0)} />
+               <p className="pt-4 text-sm text-muted-foreground">Next, choose a plan. Tutor assignment notifications will appear once your school is active.</p>
+             </div>
+           )}
+
 
           <div className="mt-8 flex justify-between gap-3">
-            <Button variant="ghost" disabled={step === 1 || submitting} onClick={() => setStep((s) => s - 1)}>Back</Button>
+             <div className="flex gap-2">
+               <Button variant="ghost" disabled={step === 1 || submitting} onClick={() => setStep((s) => s - 1)}>Back</Button>
+               {step === 1 && <Button variant="ghost" disabled={submitting} onClick={() => persist(2)}>Skip optional</Button>}
+             </div>
             {step < totalSteps ? (
               <Button disabled={submitting} onClick={() => persist(step + 1)}>{submitting ? "Saving…" : "Continue"}</Button>
             ) : (

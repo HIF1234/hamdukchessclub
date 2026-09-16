@@ -665,6 +665,7 @@ export type Database = {
         Row: {
           account_state: Database["public"]["Enums"]["account_state"] | null
           avatar_url: string | null
+          billing_cycle: string | null
           bio: string | null
           chess_goals: string | null
           chess_rating: number | null
@@ -676,12 +677,14 @@ export type Database = {
           id: string
           language: string | null
           last_active_at: string | null
+          lecture_level: string | null
           location: string | null
           member_since: string | null
           membership_expires_at: string | null
           membership_level:
             | Database["public"]["Enums"]["membership_level"]
             | null
+          membership_type: string | null
           notification_prefs: Json
           onboarding_completed: boolean | null
           onboarding_step: number
@@ -695,6 +698,7 @@ export type Database = {
         Insert: {
           account_state?: Database["public"]["Enums"]["account_state"] | null
           avatar_url?: string | null
+          billing_cycle?: string | null
           bio?: string | null
           chess_goals?: string | null
           chess_rating?: number | null
@@ -706,12 +710,14 @@ export type Database = {
           id: string
           language?: string | null
           last_active_at?: string | null
+          lecture_level?: string | null
           location?: string | null
           member_since?: string | null
           membership_expires_at?: string | null
           membership_level?:
             | Database["public"]["Enums"]["membership_level"]
             | null
+          membership_type?: string | null
           notification_prefs?: Json
           onboarding_completed?: boolean | null
           onboarding_step?: number
@@ -725,6 +731,7 @@ export type Database = {
         Update: {
           account_state?: Database["public"]["Enums"]["account_state"] | null
           avatar_url?: string | null
+          billing_cycle?: string | null
           bio?: string | null
           chess_goals?: string | null
           chess_rating?: number | null
@@ -736,12 +743,14 @@ export type Database = {
           id?: string
           language?: string | null
           last_active_at?: string | null
+          lecture_level?: string | null
           location?: string | null
           member_since?: string | null
           membership_expires_at?: string | null
           membership_level?:
             | Database["public"]["Enums"]["membership_level"]
             | null
+          membership_type?: string | null
           notification_prefs?: Json
           onboarding_completed?: boolean | null
           onboarding_step?: number

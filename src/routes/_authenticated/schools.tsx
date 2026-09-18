@@ -1,8 +1,9 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
-import { useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { toast } from "sonner";
 import { DashboardShell } from "@/components/dashboard/dashboard-shell";
-import { listSchools } from "@/lib/admin/management.functions";
+import { listSchools, toggleSchoolSuspension } from "@/lib/admin/management.functions";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 
@@ -14,6 +15,9 @@ export const Route = createFileRoute("/_authenticated/schools")({
 function SchoolsPage() {
   const fetchSchools = useServerFn(listSchools);
   const { data, isLoading, error } = useQuery({ queryKey: ["schools"], queryFn: () => fetchSchools() });
+  const qc = useQueryClient();
+  const toggle = useServerFn(toggleSchoolSuspension);
+  const toggleMut = useMutation({ mutationFn: (input: { school_id: string; suspended: boolean }) => toggle({ data: input }), onSuccess: () => { toast.success("School updated"); void qc.invalidateQueries({ queryKey: ["schools"] }); }, onError: (e: Error) => toast.error(e.message) });
   return (
     <DashboardShell>
       <div className="mb-8">
@@ -31,6 +35,7 @@ function SchoolsPage() {
                 <th className="text-left px-4 py-3">Tier</th>
                 <th className="text-left px-4 py-3">Subscription</th>
                 <th className="text-left px-4 py-3">Students</th>
+                <th className="text-left px-4 py-3">Action</th>
               </tr>
             </thead>
             <tbody>
@@ -51,7 +56,8 @@ function SchoolsPage() {
                   <td className="px-4 py-3 text-muted-foreground">{s.contact_email ?? "—"}</td>
                   <td className="px-4 py-3 capitalize">{s.program_tier ?? "—"}</td>
                   <td className="px-4 py-3"><Badge variant={s.subscription_status === "active" ? "default" : "secondary"}>{s.subscription_status}</Badge></td>
-                  <td className="px-4 py-3">{s.student_count ?? "—"}</td>
+                   <td className="px-4 py-3">{s.student_count ?? "—"}</td>
+                   <td className="px-4 py-3"><Button size="sm" variant="outline" disabled={toggleMut.isPending} onClick={() => toggleMut.mutate({ school_id: s.id, suspended: !s.is_suspended })}>{s.is_suspended ? "Unsuspend" : "Suspend"}</Button></td>
                 </tr>
               ))}
               {data?.length === 0 && <tr><td colSpan={5} className="px-4 py-8 text-center text-muted-foreground">No schools yet.</td></tr>}

@@ -46,6 +46,23 @@ export const listMembers = createServerFn({ method: "GET" })
     return data ?? [];
   });
 
+export const updateMemberState = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d) => z.object({ user_id: z.string().uuid(), account_state: z.enum(["active", "suspended", "expired"]) }).parse(d))
+  .handler(async ({ context, data }) => {
+    const { supabase, userId } = context;
+    const roles = await getRoles(supabase, userId);
+    if (!roles.includes("super_admin") && !roles.includes("school_admin")) throw new Error("Forbidden");
+    if (roles.includes("school_admin") && !roles.includes("super_admin")) {
+      const { data: school } = await supabaseAdmin.from("schools").select("id").eq("owner_user_id", userId).maybeSingle();
+      const { data: membership } = school ? await supabase.from("school_memberships").select("id").eq("school_id", school.id).eq("user_id", data.user_id).maybeSingle() : { data: null };
+      if (!membership) throw new Error("You can only manage members in your school.");
+    }
+    const { error } = await supabaseAdmin.from("profiles").update({ account_state: data.account_state }).eq("id", data.user_id);
+    if (error) fail("updateMemberState", error);
+    return { ok: true };
+  });
+
 // SCHOOLS
 export const listSchools = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
@@ -59,6 +76,17 @@ export const listSchools = createServerFn({ method: "GET" })
       .order("created_at", { ascending: false });
     if (error) fail("listSchools", error);
     return data ?? [];
+  });
+
+export const toggleSchoolSuspension = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d) => z.object({ school_id: z.string().uuid(), suspended: z.boolean() }).parse(d))
+  .handler(async ({ context, data }) => {
+    const roles = await getRoles(context.supabase, context.userId);
+    if (!roles.includes("super_admin")) throw new Error("Forbidden");
+    const { error } = await supabaseAdmin.from("schools").update({ is_suspended: data.suspended, suspended_reason: data.suspended ? "Suspended by an administrator" : null }).eq("id", data.school_id);
+    if (error) fail("toggleSchoolSuspension", error);
+    return { ok: true };
   });
 
 // TUTORS — users with tutor role
@@ -154,6 +182,15 @@ export const enrollInClass = createServerFn({ method: "POST" })
     return { ok: true };
   });
 
+export const unenrollFromClass = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d) => z.object({ class_id: z.string().uuid() }).parse(d))
+  .handler(async ({ context, data }) => {
+    const { error } = await context.supabase.from("class_enrollments").delete().eq("class_id", data.class_id).eq("user_id", context.userId);
+    if (error) fail("unenrollFromClass", error);
+    return { ok: true };
+  });
+
 // TOURNAMENTS
 export const listTournaments = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
@@ -220,5 +257,14 @@ export const registerForTournament = createServerFn({ method: "POST" })
       .from("tournament_participants")
       .insert({ tournament_id: data.tournament_id, user_id: userId });
     if (error) fail("registerForTournament", error);
+    return { ok: true };
+  });
+
+export const withdrawFromTournament = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d) => z.object({ tournament_id: z.string().uuid() }).parse(d))
+  .handler(async ({ context, data }) => {
+    const { error } = await context.supabase.from("tournament_participants").delete().eq("tournament_id", data.tournament_id).eq("user_id", context.userId);
+    if (error) fail("withdrawFromTournament", error);
     return { ok: true };
   });

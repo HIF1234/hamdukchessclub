@@ -8,7 +8,7 @@ import {
   getClassDetail, updateClassNotes, updateMeetingUrl,
   addClassResource, removeClassResource, setAttendance,
 } from "@/lib/classes/classes.functions";
-import { enrollInClass } from "@/lib/admin/management.functions";
+import { enrollInClass, unenrollFromClass } from "@/lib/admin/management.functions";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -28,6 +28,7 @@ function ClassDetailPage() {
   const { classId } = useParams({ from: "/_authenticated/classes/$classId" });
   const fetchDetail = useServerFn(getClassDetail);
   const enroll = useServerFn(enrollInClass);
+  const unenroll = useServerFn(unenrollFromClass);
   const qc = useQueryClient();
   const { data, isLoading, error } = useQuery({
     queryKey: ["class", classId],
@@ -37,6 +38,11 @@ function ClassDetailPage() {
   const enrollMut = useMutation({
     mutationFn: () => enroll({ data: { class_id: classId } }),
     onSuccess: () => { toast.success("Enrolled"); qc.invalidateQueries({ queryKey: ["class", classId] }); },
+    onError: (e: Error) => toast.error(e.message),
+  });
+  const unenrollMut = useMutation({
+    mutationFn: () => unenroll({ data: { class_id: classId } }),
+    onSuccess: () => { toast.success("You left the class"); qc.invalidateQueries({ queryKey: ["class", classId] }); },
     onError: (e: Error) => toast.error(e.message),
   });
 
@@ -63,7 +69,7 @@ function ClassDetailPage() {
             {!data.enrolled_me && !data.can_manage && (
               <Button onClick={() => enrollMut.mutate()} disabled={enrollMut.isPending}>Enrol</Button>
             )}
-            {data.enrolled_me && <Badge>Enrolled</Badge>}
+             {data.enrolled_me && <Button variant="outline" onClick={() => unenrollMut.mutate()} disabled={unenrollMut.isPending}>{unenrollMut.isPending ? "Leaving…" : "Leave class"}</Button>}
           </div>
 
           <Tabs defaultValue="overview" className="w-full">

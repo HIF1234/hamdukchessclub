@@ -48,10 +48,10 @@ function MembersPage() {
             </thead>
             <tbody>
               {isLoading && (
-                <tr><td colSpan={6} className="px-4 py-8 text-center text-muted-foreground">Loading…</td></tr>
+                <tr><td colSpan={7} className="px-4 py-8 text-center text-muted-foreground">Loading…</td></tr>
               )}
               {error && (
-                <tr><td colSpan={6} className="px-4 py-8 text-center text-destructive">{(error as Error).message}</td></tr>
+                <tr><td colSpan={7} className="px-4 py-8 text-center text-destructive">{(error as Error).message}</td></tr>
               )}
               {data?.map((m) => (
                 <tr key={m.id} className="border-t border-border/40 hover:bg-secondary/20">
@@ -65,7 +65,7 @@ function MembersPage() {
                 </tr>
               ))}
               {data?.length === 0 && (
-                <tr><td colSpan={6} className="px-4 py-8 text-center text-muted-foreground">No members yet.</td></tr>
+                <tr><td colSpan={7} className="px-4 py-8 text-center text-muted-foreground">No members yet.</td></tr>
               )}
             </tbody>
           </table>

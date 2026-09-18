@@ -7,6 +7,7 @@ import { DashboardShell } from "@/components/dashboard/dashboard-shell";
 import { listMembers, updateMemberState } from "@/lib/admin/management.functions";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 
 export const Route = createFileRoute("/_authenticated/members")({
   head: () => ({ meta: [{ title: "Members — Hamduk Chess Club" }] }),

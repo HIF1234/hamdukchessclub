@@ -6,6 +6,7 @@ import { DashboardShell } from "@/components/dashboard/dashboard-shell";
 import { listSchools, toggleSchoolSuspension } from "@/lib/admin/management.functions";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 
 export const Route = createFileRoute("/_authenticated/schools")({
   head: () => ({ meta: [{ title: "Schools — Hamduk Chess Club" }] }),
@@ -39,8 +40,8 @@ function SchoolsPage() {
               </tr>
             </thead>
             <tbody>
-              {isLoading && <tr><td colSpan={5} className="px-4 py-8 text-center text-muted-foreground">Loading…</td></tr>}
-              {error && <tr><td colSpan={5} className="px-4 py-8 text-center text-destructive">{(error as Error).message}</td></tr>}
+              {isLoading && <tr><td colSpan={6} className="px-4 py-8 text-center text-muted-foreground">Loading…</td></tr>}
+              {error && <tr><td colSpan={6} className="px-4 py-8 text-center text-destructive">{(error as Error).message}</td></tr>}
               {data?.map((s) => (
                 <tr key={s.id} className="border-t border-border/40 hover:bg-secondary/20">
                   <td className="px-4 py-3 font-medium">
@@ -60,7 +61,7 @@ function SchoolsPage() {
                    <td className="px-4 py-3"><Button size="sm" variant="outline" disabled={toggleMut.isPending} onClick={() => toggleMut.mutate({ school_id: s.id, suspended: !s.is_suspended })}>{s.is_suspended ? "Unsuspend" : "Suspend"}</Button></td>
                 </tr>
               ))}
-              {data?.length === 0 && <tr><td colSpan={5} className="px-4 py-8 text-center text-muted-foreground">No schools yet.</td></tr>}
+              {data?.length === 0 && <tr><td colSpan={6} className="px-4 py-8 text-center text-muted-foreground">No schools yet.</td></tr>}
             </tbody>
           </table>
         </div>

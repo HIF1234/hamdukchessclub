@@ -6,7 +6,7 @@ import { DashboardShell } from "@/components/dashboard/dashboard-shell";
 import {
   getTournamentDetail, generateNextRound, recordResult, completeTournament,
 } from "@/lib/tournaments/tournaments.functions";
-import { registerForTournament } from "@/lib/admin/management.functions";
+import { registerForTournament, withdrawFromTournament } from "@/lib/admin/management.functions";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -23,6 +23,7 @@ function TournamentDetailPage() {
   const { tournamentId } = useParams({ from: "/_authenticated/tournaments/$tournamentId" });
   const fetchDetail = useServerFn(getTournamentDetail);
   const register = useServerFn(registerForTournament);
+  const withdraw = useServerFn(withdrawFromTournament);
   const nextRound = useServerFn(generateNextRound);
   const complete = useServerFn(completeTournament);
   const qc = useQueryClient();
@@ -37,6 +38,11 @@ function TournamentDetailPage() {
   const regMut = useMutation({
     mutationFn: () => register({ data: { tournament_id: tournamentId } }),
     onSuccess: () => { toast.success("Registered"); inv(); },
+    onError: (e: Error) => toast.error(e.message),
+  });
+  const withdrawMut = useMutation({
+    mutationFn: () => withdraw({ data: { tournament_id: tournamentId } }),
+    onSuccess: () => { toast.success("You left the tournament"); inv(); },
     onError: (e: Error) => toast.error(e.message),
   });
   const roundMut = useMutation({
@@ -73,6 +79,9 @@ function TournamentDetailPage() {
             <div className="flex gap-2">
               {!data.registered_me && data.tournament.status === "registration_open" && (
                 <Button onClick={() => regMut.mutate()} disabled={regMut.isPending}>Register</Button>
+              )}
+              {data.registered_me && data.tournament.status === "registration_open" && (
+                <Button variant="outline" onClick={() => withdrawMut.mutate()} disabled={withdrawMut.isPending}>{withdrawMut.isPending ? "Leaving…" : "Withdraw"}</Button>
               )}
               {data.can_manage && data.tournament.status !== "completed" && (
                 <Button variant="secondary" onClick={() => roundMut.mutate()} disabled={roundMut.isPending}>

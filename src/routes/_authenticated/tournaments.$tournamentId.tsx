@@ -6,10 +6,13 @@ import { DashboardShell } from "@/components/dashboard/dashboard-shell";
 import {
   getTournamentDetail, generateNextRound, recordResult, completeTournament,
 } from "@/lib/tournaments/tournaments.functions";
-import { registerForTournament, withdrawFromTournament } from "@/lib/admin/management.functions";
+import { registerForTournament, withdrawFromTournament, updateTournament, cancelTournament } from "@/lib/admin/management.functions";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { ArrowLeft, Trophy, Users, Swords, BarChart3, CheckCircle2 } from "lucide-react";
@@ -181,11 +184,49 @@ function TournamentDetailPage() {
                 <p className="text-muted-foreground">{data.tournament.description || "No description."}</p>
                 <p className="text-sm text-muted-foreground">{data.tournament.rounds ?? "—"} rounds · max {data.tournament.max_participants ?? "—"} players</p>
               </Card>
+              {data.can_manage && <TournamentManagePanel tournament={data.tournament} tournamentId={tournamentId} />}
             </TabsContent>
           </Tabs>
         </>
       )}
     </DashboardShell>
+  );
+}
+
+function TournamentManagePanel({ tournament, tournamentId }: { tournament: { name: string; description: string | null; format: "swiss" | "round_robin" | "knockout" | "arena"; starts_at: string; max_participants: number | null; rounds: number | null }; tournamentId: string }) {
+  const update = useServerFn(updateTournament);
+  const cancel = useServerFn(cancelTournament);
+  const qc = useQueryClient();
+  const [name, setName] = useState(tournament.name);
+  const [description, setDescription] = useState(tournament.description ?? "");
+  const [format, setFormat] = useState(tournament.format);
+  const [startsAt, setStartsAt] = useState(new Date(tournament.starts_at).toISOString().slice(0, 16));
+  const [rounds, setRounds] = useState(String(tournament.rounds ?? ""));
+  const [maxParticipants, setMaxParticipants] = useState(String(tournament.max_participants ?? ""));
+  const updateMut = useMutation({
+    mutationFn: () => update({ data: { tournament_id: tournamentId, name, description: description || undefined, format, starts_at: new Date(startsAt).toISOString(), rounds: rounds ? Number(rounds) : undefined, max_participants: maxParticipants ? Number(maxParticipants) : undefined } }),
+    onSuccess: () => { toast.success("Tournament updated"); void qc.invalidateQueries({ queryKey: ["tournament", tournamentId] }); },
+    onError: (e: Error) => toast.error(e.message),
+  });
+  const cancelMut = useMutation({
+    mutationFn: () => cancel({ data: { tournament_id: tournamentId } }),
+    onSuccess: () => { toast.success("Tournament cancelled"); void qc.invalidateQueries({ queryKey: ["tournament", tournamentId] }); },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
+  return (
+    <Card className="mt-4 p-6 space-y-4">
+      <div><h2 className="font-display text-2xl">Manage tournament</h2><p className="text-sm text-muted-foreground mt-1">Update event details or cancel it.</p></div>
+      <div className="grid gap-4 sm:grid-cols-2">
+        <div className="space-y-2"><Label htmlFor="manage-tournament-name">Name</Label><Input id="manage-tournament-name" value={name} onChange={(e) => setName(e.target.value)} /></div>
+        <div className="space-y-2"><Label htmlFor="manage-tournament-start">Starts at</Label><Input id="manage-tournament-start" type="datetime-local" value={startsAt} onChange={(e) => setStartsAt(e.target.value)} /></div>
+        <div className="space-y-2"><Label>Format</Label><Select value={format} onValueChange={(value) => setFormat(value as typeof format)}><SelectTrigger><SelectValue /></SelectTrigger><SelectContent><SelectItem value="swiss">Swiss</SelectItem><SelectItem value="round_robin">Round robin</SelectItem><SelectItem value="knockout">Knockout</SelectItem><SelectItem value="arena">Arena</SelectItem></SelectContent></Select></div>
+        <div className="space-y-2"><Label htmlFor="manage-tournament-rounds">Rounds</Label><Input id="manage-tournament-rounds" type="number" min={1} value={rounds} onChange={(e) => setRounds(e.target.value)} /></div>
+        <div className="space-y-2"><Label htmlFor="manage-tournament-capacity">Max participants</Label><Input id="manage-tournament-capacity" type="number" min={2} value={maxParticipants} onChange={(e) => setMaxParticipants(e.target.value)} /></div>
+      </div>
+      <div className="space-y-2"><Label htmlFor="manage-tournament-description">Description</Label><Textarea id="manage-tournament-description" value={description} onChange={(e) => setDescription(e.target.value)} /></div>
+      <div className="flex flex-wrap gap-2"><Button size="sm" onClick={() => updateMut.mutate()} disabled={updateMut.isPending}>{updateMut.isPending ? "Saving…" : "Save changes"}</Button><Button size="sm" variant="destructive" onClick={() => cancelMut.mutate()} disabled={cancelMut.isPending}>{cancelMut.isPending ? "Cancelling…" : "Cancel tournament"}</Button></div>
+    </Card>
   );
 }
 

@@ -156,6 +156,71 @@ export const createClass = createServerFn({ method: "POST" })
     return created;
   });
 
+const updateClassSchema = z.object({
+  class_id: z.string().uuid(),
+  title: z.string().min(2).max(140),
+  description: z.string().max(2000).optional(),
+  level: z.enum(["beginner", "intermediate", "advanced", "all_levels"]),
+  starts_at: z.string().min(1),
+  ends_at: z.string().optional(),
+  capacity: z.number().int().min(1).max(500).optional(),
+});
+
+async function assertCanManageClass(supabase: any, userId: string, classId: string) {
+  const roles = await getRoles(supabase, userId);
+  if (roles.includes("super_admin")) return;
+  const { data: cls } = await supabaseAdmin
+    .from("classes")
+    .select("school_id, tutor_id, created_by")
+    .eq("id", classId)
+    .maybeSingle();
+  if (!cls) throw new Error("Class not found");
+  if (cls.tutor_id === userId || cls.created_by === userId) return;
+  if (cls.school_id) {
+    const { data: school } = await supabaseAdmin
+      .from("schools")
+      .select("owner_user_id")
+      .eq("id", cls.school_id)
+      .maybeSingle();
+    if (school?.owner_user_id === userId) return;
+  }
+  throw new Error("Forbidden");
+}
+
+export const updateClass = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d) => updateClassSchema.parse(d))
+  .handler(async ({ context, data }) => {
+    await assertCanManageClass(context.supabase, context.userId, data.class_id);
+    const { error } = await supabaseAdmin
+      .from("classes")
+      .update({
+        title: data.title,
+        description: data.description ?? null,
+        level: data.level,
+        starts_at: data.starts_at,
+        ends_at: data.ends_at || null,
+        capacity: data.capacity ?? null,
+      })
+      .eq("id", data.class_id);
+    if (error) fail("updateClass", error);
+    return { ok: true };
+  });
+
+export const cancelClass = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d) => z.object({ class_id: z.string().uuid() }).parse(d))
+  .handler(async ({ context, data }) => {
+    await assertCanManageClass(context.supabase, context.userId, data.class_id);
+    const { error } = await supabaseAdmin
+      .from("classes")
+      .update({ status: "cancelled" })
+      .eq("id", data.class_id)
+      .neq("status", "completed");
+    if (error) fail("cancelClass", error);
+    return { ok: true };
+  });
+
 export const enrollInClass = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d) => z.object({ class_id: z.string().uuid() }).parse(d))
@@ -232,6 +297,73 @@ export const createTournament = createServerFn({ method: "POST" })
       .single();
     if (error) fail("createTournament", error);
     return created;
+  });
+
+const updateTournamentSchema = z.object({
+  tournament_id: z.string().uuid(),
+  name: z.string().min(2).max(140),
+  description: z.string().max(2000).optional(),
+  format: z.enum(["swiss", "round_robin", "knockout", "arena"]),
+  starts_at: z.string().min(1),
+  ends_at: z.string().optional(),
+  max_participants: z.number().int().min(2).max(1000).optional(),
+  rounds: z.number().int().min(1).max(50).optional(),
+});
+
+async function assertCanManageTournament(supabase: any, userId: string, tournamentId: string) {
+  const roles = await getRoles(supabase, userId);
+  if (roles.includes("super_admin")) return;
+  const { data: tournament } = await supabaseAdmin
+    .from("tournaments")
+    .select("school_id, created_by")
+    .eq("id", tournamentId)
+    .maybeSingle();
+  if (!tournament) throw new Error("Tournament not found");
+  if (tournament.created_by === userId) return;
+  if (tournament.school_id) {
+    const { data: school } = await supabaseAdmin
+      .from("schools")
+      .select("owner_user_id")
+      .eq("id", tournament.school_id)
+      .maybeSingle();
+    if (school?.owner_user_id === userId) return;
+  }
+  throw new Error("Forbidden");
+}
+
+export const updateTournament = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d) => updateTournamentSchema.parse(d))
+  .handler(async ({ context, data }) => {
+    await assertCanManageTournament(context.supabase, context.userId, data.tournament_id);
+    const { error } = await supabaseAdmin
+      .from("tournaments")
+      .update({
+        name: data.name,
+        description: data.description ?? null,
+        format: data.format,
+        starts_at: data.starts_at,
+        ends_at: data.ends_at || null,
+        max_participants: data.max_participants ?? null,
+        rounds: data.rounds ?? null,
+      })
+      .eq("id", data.tournament_id);
+    if (error) fail("updateTournament", error);
+    return { ok: true };
+  });
+
+export const cancelTournament = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d) => z.object({ tournament_id: z.string().uuid() }).parse(d))
+  .handler(async ({ context, data }) => {
+    await assertCanManageTournament(context.supabase, context.userId, data.tournament_id);
+    const { error } = await supabaseAdmin
+      .from("tournaments")
+      .update({ status: "cancelled" })
+      .eq("id", data.tournament_id)
+      .neq("status", "completed");
+    if (error) fail("cancelTournament", error);
+    return { ok: true };
   });
 
 export const registerForTournament = createServerFn({ method: "POST" })

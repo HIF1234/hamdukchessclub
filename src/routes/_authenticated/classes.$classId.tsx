@@ -8,7 +8,7 @@ import {
   getClassDetail, updateClassNotes, updateMeetingUrl,
   addClassResource, removeClassResource, setAttendance,
 } from "@/lib/classes/classes.functions";
-import { enrollInClass, unenrollFromClass } from "@/lib/admin/management.functions";
+import { enrollInClass, unenrollFromClass, updateClass, cancelClass } from "@/lib/admin/management.functions";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -125,11 +125,47 @@ function ClassDetailPage() {
                 canManage={data.can_manage}
                 initial={data.class.session_notes ?? ""}
               />
+              {data.can_manage && <ClassManagePanel classData={data.class} classId={classId} />}
             </TabsContent>
           </Tabs>
         </>
       )}
     </DashboardShell>
+  );
+}
+
+function ClassManagePanel({ classData, classId }: { classData: { title: string; description: string | null; level: "beginner" | "intermediate" | "advanced" | "all_levels"; starts_at: string; capacity: number | null }; classId: string }) {
+  const update = useServerFn(updateClass);
+  const cancel = useServerFn(cancelClass);
+  const qc = useQueryClient();
+  const [title, setTitle] = useState(classData.title);
+  const [description, setDescription] = useState(classData.description ?? "");
+  const [level, setLevel] = useState(classData.level);
+  const [startsAt, setStartsAt] = useState(new Date(classData.starts_at).toISOString().slice(0, 16));
+  const [capacity, setCapacity] = useState(String(classData.capacity ?? ""));
+  const updateMut = useMutation({
+    mutationFn: () => update({ data: { class_id: classId, title, description: description || undefined, level, starts_at: new Date(startsAt).toISOString(), capacity: capacity ? Number(capacity) : undefined } }),
+    onSuccess: () => { toast.success("Class updated"); void qc.invalidateQueries({ queryKey: ["class", classId] }); },
+    onError: (e: Error) => toast.error(e.message),
+  });
+  const cancelMut = useMutation({
+    mutationFn: () => cancel({ data: { class_id: classId } }),
+    onSuccess: () => { toast.success("Class cancelled"); void qc.invalidateQueries({ queryKey: ["class", classId] }); },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
+  return (
+    <Card className="mt-4 p-6 space-y-4">
+      <div><h2 className="font-display text-2xl">Manage class</h2><p className="text-sm text-muted-foreground mt-1">Update the session details or cancel it.</p></div>
+      <div className="grid gap-4 sm:grid-cols-2">
+        <div className="space-y-2"><Label htmlFor="manage-class-title">Title</Label><Input id="manage-class-title" value={title} onChange={(e) => setTitle(e.target.value)} /></div>
+        <div className="space-y-2"><Label htmlFor="manage-class-start">Starts at</Label><Input id="manage-class-start" type="datetime-local" value={startsAt} onChange={(e) => setStartsAt(e.target.value)} /></div>
+        <div className="space-y-2"><Label>Level</Label><Select value={level} onValueChange={(value) => setLevel(value as typeof level)}><SelectTrigger><SelectValue /></SelectTrigger><SelectContent><SelectItem value="all_levels">All levels</SelectItem><SelectItem value="beginner">Beginner</SelectItem><SelectItem value="intermediate">Intermediate</SelectItem><SelectItem value="advanced">Advanced</SelectItem></SelectContent></Select></div>
+        <div className="space-y-2"><Label htmlFor="manage-class-capacity">Capacity</Label><Input id="manage-class-capacity" type="number" min={1} value={capacity} onChange={(e) => setCapacity(e.target.value)} /></div>
+      </div>
+      <div className="space-y-2"><Label htmlFor="manage-class-description">Description</Label><Textarea id="manage-class-description" value={description} onChange={(e) => setDescription(e.target.value)} /></div>
+      <div className="flex flex-wrap gap-2"><Button size="sm" onClick={() => updateMut.mutate()} disabled={updateMut.isPending}>{updateMut.isPending ? "Saving…" : "Save changes"}</Button><Button size="sm" variant="destructive" onClick={() => cancelMut.mutate()} disabled={cancelMut.isPending}>{cancelMut.isPending ? "Cancelling…" : "Cancel class"}</Button></div>
+    </Card>
   );
 }
 

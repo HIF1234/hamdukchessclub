@@ -10,6 +10,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { RefreshCw, Trash2, Plus } from "lucide-react";
 import {
   getIntegrationStatus,
@@ -224,17 +225,10 @@ function IntegrationsPage() {
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="embed-kind">Kind</Label>
-                    <select
-                      id="embed-kind"
-                      value={kind}
-                      onChange={(e) => setKind(e.target.value as typeof kind)}
-                      className="h-9 w-full rounded-md border border-input bg-background px-3 text-sm"
-                    >
-                      <option value="puzzle">Puzzle</option>
-                      <option value="board">Board</option>
-                      <option value="leaderboard">Leaderboard</option>
-                      <option value="analysis">Analysis</option>
-                    </select>
+                    <Select value={kind} onValueChange={(value) => setKind(value as typeof kind)}>
+                      <SelectTrigger id="embed-kind"><SelectValue /></SelectTrigger>
+                      <SelectContent><SelectItem value="puzzle">Puzzle</SelectItem><SelectItem value="board">Board</SelectItem><SelectItem value="leaderboard">Leaderboard</SelectItem><SelectItem value="analysis">Analysis</SelectItem></SelectContent>
+                    </Select>
                   </div>
                   <div className="flex items-end">
                     <Button

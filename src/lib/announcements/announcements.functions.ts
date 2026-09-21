@@ -43,8 +43,9 @@ export const createAnnouncement = createServerFn({ method: "POST" })
     const { supabase, userId } = context;
     const roles = await getRoles(supabase, userId);
     const isSuper = roles.includes("super_admin");
+    let schoolId = data.school_id ?? null;
     if (!isSuper) {
-      if (data.audience !== "school" || !data.school_id) {
+      if (data.audience !== "school") {
         throw new Error("Only super admins can post non-school announcements");
       }
       const { data: school } = await supabaseAdmin
@@ -52,8 +53,16 @@ export const createAnnouncement = createServerFn({ method: "POST" })
         .select("owner_user_id")
         .eq("id", data.school_id)
         .maybeSingle();
-      if (!school || school.owner_user_id !== userId) {
-        throw new Error("Forbidden");
+      if (data.school_id && school?.owner_user_id === userId) {
+        schoolId = data.school_id;
+      } else {
+        const { data: ownedSchool } = await supabaseAdmin
+          .from("schools")
+          .select("id")
+          .eq("owner_user_id", userId)
+          .maybeSingle();
+        if (!ownedSchool) throw new Error("No school is assigned to this account.");
+        schoolId = ownedSchool.id;
       }
     }
     const { data: created, error } = await supabaseAdmin
@@ -62,7 +71,7 @@ export const createAnnouncement = createServerFn({ method: "POST" })
         title: data.title,
         body: data.body,
         audience: data.audience,
-        school_id: data.school_id ?? null,
+        school_id: schoolId,
         pinned: data.pinned ?? false,
         expires_at: data.expires_at || null,
         created_by: userId,
@@ -71,6 +80,43 @@ export const createAnnouncement = createServerFn({ method: "POST" })
       .single();
     if (error) fail("create", error);
     return created;
+  });
+
+const updateSchema = createSchema.extend({ id: z.string().uuid() });
+
+export const updateAnnouncement = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d) => updateSchema.parse(d))
+  .handler(async ({ context, data }) => {
+    const { supabase, userId } = context;
+    const roles = await getRoles(supabase, userId);
+    const { data: existing, error: readError } = await supabaseAdmin
+      .from("announcements")
+      .select("created_by, school_id")
+      .eq("id", data.id)
+      .maybeSingle();
+    if (readError) fail("update.read", readError);
+    if (!existing) throw new Error("Announcement not found");
+    if (roles.includes("super_admin")) {
+      // Super admins can edit every announcement.
+    } else if (existing.created_by !== userId) {
+      throw new Error("Forbidden");
+    }
+    const { data: updated, error } = await supabaseAdmin
+      .from("announcements")
+      .update({
+        title: data.title,
+        body: data.body,
+        audience: data.audience,
+        school_id: data.school_id ?? existing.school_id,
+        pinned: data.pinned ?? false,
+        expires_at: data.expires_at || null,
+      })
+      .eq("id", data.id)
+      .select()
+      .single();
+    if (error) fail("update", error);
+    return updated;
   });
 
 export const deleteAnnouncement = createServerFn({ method: "POST" })

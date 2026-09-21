@@ -56,7 +56,7 @@ function AuditPage() {
                     {r.user_id ? r.user_id.slice(0, 8) + "…" : "system"}
                   </td>
                   <td className="px-4 py-3 text-muted-foreground text-xs max-w-[280px] truncate">
-                    {r.metadata ? JSON.stringify(r.metadata) : "—"}
+                     {r.metadata && typeof r.metadata === "object" ? Object.entries(r.metadata as Record<string, unknown>).map(([key, value]) => `${key}: ${String(value)}`).join(" · ") : "—"}
                   </td>
                 </tr>
               ))}

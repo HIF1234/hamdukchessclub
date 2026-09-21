@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { createFileRoute, useSearch } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -17,6 +17,7 @@ import {
 } from "@/lib/messages/messages.functions";
 import { MessageSquare, Send, Search, Plus } from "lucide-react";
 import { toast } from "sonner";
+import { supabase } from "@/integrations/supabase/client";
 
 const searchSchema = z.object({ u: z.string().uuid().optional() });
 
@@ -61,6 +62,16 @@ function MessagesPage() {
     },
     onError: (e) => toast.error(e instanceof Error ? e.message : "Could not send"),
   });
+
+  useEffect(() => {
+    const channel = supabase
+      .channel("messages-inbox")
+      .on("postgres_changes", { event: "*", schema: "public", table: "messages" }, () => {
+        void qc.invalidateQueries({ queryKey: ["messages"] });
+      })
+      .subscribe();
+    return () => { void supabase.removeChannel(channel); };
+  }, [qc]);
 
   return (
     <DashboardShell>

@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
@@ -80,12 +80,9 @@ function NotificationsPage() {
                 <p className="text-sm text-muted-foreground mt-1">{n.body}</p>
               )}
               {n.link && (
-                <a
-                  href={n.link}
-                  className="text-sm text-primary hover:underline mt-1 inline-block"
-                >
+                <Link to={n.link} className="text-sm text-primary hover:underline mt-1 inline-block">
                   Open →
-                </a>
+                </Link>
               )}
             </div>
             <div className="flex flex-col gap-1">

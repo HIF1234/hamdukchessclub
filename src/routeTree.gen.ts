@@ -26,6 +26,7 @@ import { Route as AuthenticatedChessRouteImport } from './routes/_authenticated/
 import { Route as AuthenticatedClassesRouteImport } from './routes/_authenticated/classes'
 import { Route as AuthenticatedCoachApplicationsRouteImport } from './routes/_authenticated/coach-applications'
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
+import { Route as AuthenticatedEquipmentRouteImport } from './routes/_authenticated/equipment'
 import { Route as AuthenticatedFamilyRouteImport } from './routes/_authenticated/family'
 import { Route as AuthenticatedIntegrationsRouteImport } from './routes/_authenticated/integrations'
 import { Route as AuthenticatedLeaderboardRouteImport } from './routes/_authenticated/leaderboard'
@@ -130,6 +131,11 @@ const AuthenticatedCoachApplicationsRoute =
 const AuthenticatedDashboardRoute = AuthenticatedDashboardRouteImport.update({
   id: '/dashboard',
   path: '/dashboard',
+  getParentRoute: () => AuthenticatedRoute,
+} as any)
+const AuthenticatedEquipmentRoute = AuthenticatedEquipmentRouteImport.update({
+  id: '/equipment',
+  path: '/equipment',
   getParentRoute: () => AuthenticatedRoute,
 } as any)
 const AuthenticatedFamilyRoute = AuthenticatedFamilyRouteImport.update({
@@ -254,6 +260,7 @@ export interface FileRoutesByFullPath {
   '/classes': typeof AuthenticatedClassesRouteWithChildren
   '/coach-applications': typeof AuthenticatedCoachApplicationsRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
+  '/equipment': typeof AuthenticatedEquipmentRoute
   '/family': typeof AuthenticatedFamilyRoute
   '/integrations': typeof AuthenticatedIntegrationsRoute
   '/leaderboard': typeof AuthenticatedLeaderboardRoute
@@ -291,6 +298,7 @@ export interface FileRoutesByTo {
   '/classes': typeof AuthenticatedClassesRouteWithChildren
   '/coach-applications': typeof AuthenticatedCoachApplicationsRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
+  '/equipment': typeof AuthenticatedEquipmentRoute
   '/family': typeof AuthenticatedFamilyRoute
   '/integrations': typeof AuthenticatedIntegrationsRoute
   '/leaderboard': typeof AuthenticatedLeaderboardRoute
@@ -330,6 +338,7 @@ export interface FileRoutesById {
   '/_authenticated/classes': typeof AuthenticatedClassesRouteWithChildren
   '/_authenticated/coach-applications': typeof AuthenticatedCoachApplicationsRoute
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
+  '/_authenticated/equipment': typeof AuthenticatedEquipmentRoute
   '/_authenticated/family': typeof AuthenticatedFamilyRoute
   '/_authenticated/integrations': typeof AuthenticatedIntegrationsRoute
   '/_authenticated/leaderboard': typeof AuthenticatedLeaderboardRoute
@@ -369,6 +378,7 @@ export interface FileRouteTypes {
     | '/classes'
     | '/coach-applications'
     | '/dashboard'
+    | '/equipment'
     | '/family'
     | '/integrations'
     | '/leaderboard'
@@ -406,6 +416,7 @@ export interface FileRouteTypes {
     | '/classes'
     | '/coach-applications'
     | '/dashboard'
+    | '/equipment'
     | '/family'
     | '/integrations'
     | '/leaderboard'
@@ -444,6 +455,7 @@ export interface FileRouteTypes {
     | '/_authenticated/classes'
     | '/_authenticated/coach-applications'
     | '/_authenticated/dashboard'
+    | '/_authenticated/equipment'
     | '/_authenticated/family'
     | '/_authenticated/integrations'
     | '/_authenticated/leaderboard'
@@ -599,6 +611,13 @@ declare module '@tanstack/react-router' {
       path: '/dashboard'
       fullPath: '/dashboard'
       preLoaderRoute: typeof AuthenticatedDashboardRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
+    '/_authenticated/equipment': {
+      id: '/_authenticated/equipment'
+      path: '/equipment'
+      fullPath: '/equipment'
+      preLoaderRoute: typeof AuthenticatedEquipmentRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
     '/_authenticated/family': {
@@ -773,6 +792,7 @@ interface AuthenticatedRouteChildren {
   AuthenticatedClassesRoute: typeof AuthenticatedClassesRouteWithChildren
   AuthenticatedCoachApplicationsRoute: typeof AuthenticatedCoachApplicationsRoute
   AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
+  AuthenticatedEquipmentRoute: typeof AuthenticatedEquipmentRoute
   AuthenticatedFamilyRoute: typeof AuthenticatedFamilyRoute
   AuthenticatedIntegrationsRoute: typeof AuthenticatedIntegrationsRoute
   AuthenticatedLeaderboardRoute: typeof AuthenticatedLeaderboardRoute
@@ -798,6 +818,7 @@ const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
   AuthenticatedClassesRoute: AuthenticatedClassesRouteWithChildren,
   AuthenticatedCoachApplicationsRoute: AuthenticatedCoachApplicationsRoute,
   AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,
+  AuthenticatedEquipmentRoute: AuthenticatedEquipmentRoute,
   AuthenticatedFamilyRoute: AuthenticatedFamilyRoute,
   AuthenticatedIntegrationsRoute: AuthenticatedIntegrationsRoute,
   AuthenticatedLeaderboardRoute: AuthenticatedLeaderboardRoute,

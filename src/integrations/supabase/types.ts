@@ -296,6 +296,121 @@ export type Database = {
         }
         Relationships: []
       }
+      equipment: {
+        Row: {
+          category: string
+          condition: string
+          created_at: string
+          id: string
+          location: string | null
+          name: string
+          notes: string | null
+          organization_id: string
+          quantity_available: number
+          quantity_total: number
+          updated_at: string
+        }
+        Insert: {
+          category?: string
+          condition?: string
+          created_at?: string
+          id?: string
+          location?: string | null
+          name: string
+          notes?: string | null
+          organization_id: string
+          quantity_available?: number
+          quantity_total?: number
+          updated_at?: string
+        }
+        Update: {
+          category?: string
+          condition?: string
+          created_at?: string
+          id?: string
+          location?: string | null
+          name?: string
+          notes?: string | null
+          organization_id?: string
+          quantity_available?: number
+          quantity_total?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "equipment_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "equipment_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations_public"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      equipment_checkouts: {
+        Row: {
+          checked_out_at: string
+          checked_out_by: string | null
+          checked_out_to: string
+          due_at: string | null
+          equipment_id: string
+          id: string
+          organization_id: string
+          quantity: number
+          returned_at: string | null
+        }
+        Insert: {
+          checked_out_at?: string
+          checked_out_by?: string | null
+          checked_out_to: string
+          due_at?: string | null
+          equipment_id: string
+          id?: string
+          organization_id: string
+          quantity: number
+          returned_at?: string | null
+        }
+        Update: {
+          checked_out_at?: string
+          checked_out_by?: string | null
+          checked_out_to?: string
+          due_at?: string | null
+          equipment_id?: string
+          id?: string
+          organization_id?: string
+          quantity?: number
+          returned_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "equipment_checkouts_equipment_id_fkey"
+            columns: ["equipment_id"]
+            isOneToOne: false
+            referencedRelation: "equipment"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "equipment_checkouts_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "equipment_checkouts_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations_public"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       guardian_links: {
         Row: {
           child_user_id: string

@@ -24,6 +24,7 @@ import {
   Plug,
   Landmark,
   Award,
+  Package,
   type LucideIcon,
 } from "lucide-react";
 
@@ -45,6 +46,7 @@ const NAV: NavItem[] = [
   { to: "/organizations", label: "Organizations", icon: Building2, roles: ["super_admin"] },
   { to: "/organization", label: "My organization", icon: Landmark, roles: ["org_admin"] },
   { to: "/tutors", label: "Tutors", icon: GraduationCap, roles: ["super_admin", "org_admin"] },
+  { to: "/equipment", label: "Equipment", icon: Package, roles: ["super_admin", "org_admin"] },
   { to: "/analytics", label: "Analytics", icon: BarChart3, roles: ["super_admin", "org_admin"] },
   { to: "/audit", label: "Audit log", icon: ShieldCheck, roles: ["super_admin"] },
   { to: "/coach-applications", label: "Coach applications", icon: Award, roles: ["super_admin"] },

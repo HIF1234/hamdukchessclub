@@ -9,7 +9,6 @@ import { DashboardShell } from "@/components/dashboard/dashboard-shell";
 import { getDashboardStats, type RoleStats } from "@/lib/dashboard/dashboard.functions";
 import { listClasses, listTournaments } from "@/lib/admin/management.functions";
 import { listAnnouncements } from "@/lib/announcements/announcements.functions";
-import { listMyMemberships } from "@/lib/organizations/organizations.functions";
 import { getMyChessProfile } from "@/lib/hamduk/hamduk.functions";
 import { Trophy, Users, Building2, CreditCard, GraduationCap, BookOpen, Sparkles, KeyRound, UserCheck, Megaphone } from "lucide-react";
 import { Link } from "@tanstack/react-router";
@@ -381,16 +380,12 @@ function MemberView({
   const { data: chess } = useQuery({ queryKey: ["my-chess-profile"], queryFn: () => fetchChess(), staleTime: 30_000 });
   const topRating = chess?.ratings?.[0];
 
-  const fetchMemberships = useServerFn(listMyMemberships);
-  const { data: memberships } = useQuery({ queryKey: ["my-memberships"], queryFn: () => fetchMemberships(), staleTime: 30_000 });
-
   const myClasses = upcoming(classes, ["scheduled", "in_progress"], 3);
   const myTournaments = upcoming(tournaments, ["registration_open", "in_progress"], 3);
-  const approvedOrgs = (memberships ?? []).filter((m) => m.status === "approved");
 
   return (
     <>
-      <div className="grid sm:grid-cols-3 gap-4">
+      <div className="grid sm:grid-cols-2 gap-4">
         <StatCard
           label="Chess rating"
           value={topRating ? String(topRating.rating) : "Unrated"}
@@ -398,10 +393,9 @@ function MemberView({
           icon={Trophy}
         />
         <StatCard label="Games played" value={String(chess?.games?.length ?? 0)} hint="Most recent 25" icon={Sparkles} />
-        <StatCard label="Organizations" value={String(approvedOrgs.length)} hint={approvedOrgs.length === 0 ? "Join one with a code" : "Active memberships"} icon={Building2} />
       </div>
 
-      <div className="grid lg:grid-cols-2 gap-4 mt-6">
+      <div className="mt-6">
         <UpcomingList
           title="Up next"
           icon={BookOpen}
@@ -409,28 +403,6 @@ function MemberView({
           tournaments={myTournaments}
           emptyLabel="No upcoming classes or tournaments yet — browse what's on."
         />
-        <Card className="p-6">
-          <div className="flex items-center gap-2 mb-1">
-            <Building2 className="h-4 w-4 text-primary/70" />
-            <h3 className="font-display text-xl">Your organizations</h3>
-          </div>
-          <p className="text-sm text-muted-foreground mb-4">Every school, club, or academy you belong to.</p>
-          {(memberships ?? []).length === 0 ? (
-            <p className="text-sm text-muted-foreground">You haven't joined one yet.</p>
-          ) : (
-            <ul className="space-y-2 text-sm">
-              {memberships!.map((m) => (
-                <li key={m.id} className="flex items-center justify-between rounded-md bg-secondary/40 px-3 py-2">
-                  <span>{m.organization_name}</span>
-                  <Badge variant={m.status === "approved" ? "default" : m.status === "pending" ? "secondary" : "outline"}>{m.status}</Badge>
-                </li>
-              ))}
-            </ul>
-          )}
-          <div className="mt-4">
-            <Link to="/join"><Button variant="secondary" size="sm">Join with a code</Button></Link>
-          </div>
-        </Card>
       </div>
 
       <Card className="p-6 mt-6">

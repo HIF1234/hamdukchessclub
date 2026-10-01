@@ -1,7 +1,7 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
-import { useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -25,8 +25,9 @@ import {
   exportMyData,
   requestAccountDeletion,
 } from "@/lib/profile/profile.functions";
+import { listMyMemberships, joinOrganizationByCode } from "@/lib/organizations/organizations.functions";
 import { toast } from "sonner";
-import { Download, Trash2, ShieldCheck, Bell, KeyRound, Mail, History } from "lucide-react";
+import { Download, Trash2, ShieldCheck, Bell, KeyRound, Mail, History, Building2 } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/settings")({
   head: () => ({ meta: [{ title: "Settings — Hamduk Chess Club" }] }),
@@ -42,6 +43,23 @@ function SettingsPage() {
   const deleteFn = useServerFn(requestAccountDeletion);
 
   const { data, isLoading, refetch } = useQuery({ queryKey: ["my-profile"], queryFn: () => fetchProfile() });
+
+  const qc = useQueryClient();
+  const fetchMemberships = useServerFn(listMyMemberships);
+  const { data: memberships } = useQuery({ queryKey: ["my-memberships"], queryFn: () => fetchMemberships() });
+  const join = useServerFn(joinOrganizationByCode);
+  const [joinCode, setJoinCode] = useState("");
+  const joinMut = useMutation({
+    mutationFn: (code: string) => join({ data: { code } }),
+    onSuccess: (res) => {
+      toast.success(
+        res.status === "approved" ? `You've joined ${res.organization_name}.` : `Request sent to ${res.organization_name} — pending approval.`,
+      );
+      setJoinCode("");
+      void qc.invalidateQueries({ queryKey: ["my-memberships"] });
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
 
   const [form, setForm] = useState({
     full_name: "",
@@ -206,6 +224,41 @@ function SettingsPage() {
         </Card>
 
         <div className="space-y-6">
+          <Card className="p-6">
+            <div className="flex items-start gap-3">
+              <Building2 className="size-5 text-primary mt-0.5" />
+              <div className="flex-1">
+                <h3 className="font-display text-lg">Organizations</h3>
+                <p className="text-xs text-muted-foreground mt-1">You're automatically a Hamduk Chess Club member. Add another school, club, or academy with a join code.</p>
+                {(memberships ?? []).length > 0 && (
+                  <ul className="mt-3 space-y-1.5 text-sm">
+                    {memberships!.map((m) => (
+                      <li key={m.id} className="flex items-center justify-between">
+                        <span>{m.organization_name}</span>
+                        <Badge variant={m.status === "approved" ? "default" : m.status === "pending" ? "secondary" : "outline"} className="text-xs">{m.status}</Badge>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+                <form
+                  className="mt-3 flex gap-2"
+                  onSubmit={(e) => {
+                    e.preventDefault();
+                    if (joinCode.trim()) joinMut.mutate(joinCode.trim());
+                  }}
+                >
+                  <Input
+                    value={joinCode}
+                    onChange={(e) => setJoinCode(e.target.value)}
+                    placeholder="Join code"
+                    className="h-9 font-mono uppercase tracking-widest text-sm"
+                  />
+                  <Button type="submit" size="sm" disabled={joinMut.isPending || !joinCode.trim()}>Join</Button>
+                </form>
+              </div>
+            </div>
+          </Card>
+
           <Card className="p-6">
             <div className="flex items-start gap-3">
               <Mail className="size-5 text-primary mt-0.5" />

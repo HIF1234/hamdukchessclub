@@ -23,7 +23,6 @@ import {
   Swords,
   Plug,
   Landmark,
-  KeyRound,
   type LucideIcon,
 } from "lucide-react";
 
@@ -44,7 +43,6 @@ const NAV: NavItem[] = [
   { to: "/members", label: "Members", icon: Users, roles: ["super_admin", "org_admin"] },
   { to: "/organizations", label: "Organizations", icon: Building2, roles: ["super_admin"] },
   { to: "/organization", label: "My organization", icon: Landmark, roles: ["org_admin"] },
-  { to: "/join", label: "Join organization", icon: KeyRound },
   { to: "/tutors", label: "Tutors", icon: GraduationCap, roles: ["super_admin", "org_admin"] },
   { to: "/analytics", label: "Analytics", icon: BarChart3, roles: ["super_admin", "org_admin"] },
   { to: "/audit", label: "Audit log", icon: ShieldCheck, roles: ["super_admin"] },

@@ -6,9 +6,11 @@ export type RoleStats = {
   members?: { total: number; active: number; pendingPayment: number; expired: number };
   organizations?: { total: number; activeSubs: number };
   payments?: { totalKobo: number; last30Kobo: number; successCount: number };
-  myOrg?: { id: string; name: string; studentCount: number | null } | null;
+  recentSignups?: { id: string; full_name: string; created_at: string }[];
+  myOrg?: { id: string; name: string; studentCount: number | null; joinCode: string | null } | null;
   myOrgMembers?: number;
   myOrgClasses?: number;
+  pendingRequests?: { id: string; full_name: string; joined_at: string }[];
   tutor?: { classesThisWeek: number; students: number };
 };
 
@@ -49,16 +51,24 @@ export const getDashboardStats = createServerFn({ method: "GET" })
           .reduce((s, p) => s + (p.amount_kobo ?? 0), 0),
         successCount: payments.length,
       };
+      const { data: recentSignups } = await supabaseAdmin
+        .from("profiles")
+        .select("id, full_name, created_at")
+        .order("created_at", { ascending: false })
+        .limit(5);
+      out.recentSignups = recentSignups ?? [];
     }
 
     if (roles.includes("org_admin")) {
-      const { data: org } = await supabase
+      // join_code is deliberately excluded from the authenticated column grant on
+      // organizations (admin-only field), so it has to come through the service-role client.
+      const { data: org } = await supabaseAdmin
         .from("organizations")
-        .select("id, name, student_count")
+        .select("id, name, student_count, join_code")
         .eq("owner_user_id", userId)
         .maybeSingle();
       out.myOrg = org
-        ? { id: org.id, name: org.name, studentCount: org.student_count }
+        ? { id: org.id, name: org.name, studentCount: org.student_count, joinCode: org.join_code }
         : null;
       if (org) {
         const { count } = await supabase
@@ -68,6 +78,20 @@ export const getDashboardStats = createServerFn({ method: "GET" })
         out.myOrgMembers = count ?? 0;
         const { count: classCount } = await supabase.from("classes").select("id", { count: "exact", head: true }).eq("organization_id", org.id).in("status", ["scheduled", "in_progress"]);
         out.myOrgClasses = classCount ?? 0;
+        const { data: pending } = await supabaseAdmin
+          .from("organization_memberships")
+          .select("id, user_id, joined_at")
+          .eq("organization_id", org.id)
+          .eq("status", "pending")
+          .order("joined_at", { ascending: false })
+          .limit(5);
+        const ids = (pending ?? []).map((p) => p.user_id);
+        let names: Record<string, string> = {};
+        if (ids.length) {
+          const { data: profs } = await supabaseAdmin.from("profiles").select("id, full_name").in("id", ids);
+          for (const p of profs ?? []) names[p.id] = p.full_name;
+        }
+        out.pendingRequests = (pending ?? []).map((p) => ({ id: p.id, full_name: names[p.user_id] ?? "Unknown", joined_at: p.joined_at }));
       }
     }
 

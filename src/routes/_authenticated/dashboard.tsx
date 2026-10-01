@@ -3,10 +3,15 @@ import { useServerFn } from "@tanstack/react-start";
 import { useQuery } from "@tanstack/react-query";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import { useAuth } from "@/lib/auth/auth-context";
 import { DashboardShell } from "@/components/dashboard/dashboard-shell";
 import { getDashboardStats, type RoleStats } from "@/lib/dashboard/dashboard.functions";
-import { Trophy, Users, Building2, CreditCard, GraduationCap, BookOpen, Sparkles } from "lucide-react";
+import { listClasses, listTournaments } from "@/lib/admin/management.functions";
+import { listAnnouncements } from "@/lib/announcements/announcements.functions";
+import { listMyMemberships } from "@/lib/organizations/organizations.functions";
+import { getMyChessProfile } from "@/lib/hamduk/hamduk.functions";
+import { Trophy, Users, Building2, CreditCard, GraduationCap, BookOpen, Sparkles, KeyRound, UserCheck, Megaphone } from "lucide-react";
 import { Link } from "@tanstack/react-router";
 
 export const Route = createFileRoute("/_authenticated/dashboard")({
@@ -22,6 +27,13 @@ function Dashboard() {
     queryFn: () => fetchStats(),
     staleTime: 30_000,
   });
+
+  const fetchClasses = useServerFn(listClasses);
+  const { data: classes } = useQuery({ queryKey: ["classes"], queryFn: () => fetchClasses(), staleTime: 30_000 });
+  const fetchTournaments = useServerFn(listTournaments);
+  const { data: tournaments } = useQuery({ queryKey: ["tournaments"], queryFn: () => fetchTournaments(), staleTime: 30_000 });
+  const fetchAnnouncements = useServerFn(listAnnouncements);
+  const { data: announcements } = useQuery({ queryKey: ["announcements"], queryFn: () => fetchAnnouncements(), staleTime: 30_000 });
 
   const primaryRole = roles.includes("super_admin")
     ? "super_admin"
@@ -45,9 +57,11 @@ function Dashboard() {
       </div>
 
       {primaryRole === "super_admin" && <SuperAdminView stats={stats} />}
-      {primaryRole === "org_admin" && <OrgAdminView stats={stats} />}
-       {primaryRole === "tutor" && <TutorView stats={stats} />}
-      {primaryRole === "member" && <MemberView />}
+      {primaryRole === "org_admin" && <OrgAdminView stats={stats} classes={classes} tournaments={tournaments} />}
+      {primaryRole === "tutor" && <TutorView stats={stats} classes={classes} myId={profile?.id} />}
+      {primaryRole === "member" && <MemberView classes={classes} tournaments={tournaments} />}
+
+      <AnnouncementsCard announcements={announcements} />
     </DashboardShell>
   );
 }
@@ -61,7 +75,7 @@ function tagline(role: string) {
     case "super_admin":
       return "Club-wide overview — members, organizations, payments, and operations at a glance.";
     case "org_admin":
-      return "Your organization's home base — manage students, classes, and your subscription.";
+      return "Your organization's home base — manage members, classes, and join requests.";
     case "tutor":
       return "Your teaching dashboard — upcoming classes, students, and resources.";
     default:
@@ -73,6 +87,21 @@ function formatNaira(kobo: number) {
   return "₦" + (kobo / 100).toLocaleString("en-NG", { maximumFractionDigits: 0 });
 }
 
+function formatWhen(iso: string) {
+  const d = new Date(iso);
+  const sameYear = d.getFullYear() === new Date().getFullYear();
+  return d.toLocaleDateString(undefined, { month: "short", day: "numeric", year: sameYear ? undefined : "numeric" }) +
+    " · " + d.toLocaleTimeString(undefined, { hour: "numeric", minute: "2-digit" });
+}
+
+function upcoming<T extends { starts_at: string; status: string }>(items: T[] | undefined, activeStatuses: string[], n: number) {
+  const now = Date.now();
+  return (items ?? [])
+    .filter((i) => activeStatuses.includes(i.status) && new Date(i.starts_at).getTime() >= now)
+    .sort((a, b) => new Date(a.starts_at).getTime() - new Date(b.starts_at).getTime())
+    .slice(0, n);
+}
+
 function StatCard({ label, value, hint, icon: Icon }: { label: string; value: string; hint?: string; icon?: React.ComponentType<{ className?: string }> }) {
   return (
     <Card className="p-6 relative overflow-hidden">
@@ -82,6 +111,89 @@ function StatCard({ label, value, hint, icon: Icon }: { label: string; value: st
       </div>
       <div className="mt-3 font-display text-4xl">{value}</div>
       {hint && <div className="mt-2 text-xs text-muted-foreground">{hint}</div>}
+    </Card>
+  );
+}
+
+function AnnouncementsCard({ announcements }: { announcements?: { id: string; title: string; body: string; published_at: string; pinned: boolean }[] }) {
+  const items = (announcements ?? []).slice(0, 3);
+  if (items.length === 0) return null;
+  return (
+    <Card className="p-6 mt-6">
+      <div className="flex items-center gap-2 mb-3">
+        <Megaphone className="h-4 w-4 text-primary/70" />
+        <h3 className="font-display text-xl">Announcements</h3>
+      </div>
+      <ul className="space-y-3">
+        {items.map((a) => (
+          <li key={a.id} className="border-t border-border/40 pt-3 first:border-0 first:pt-0">
+            <div className="flex items-center gap-2">
+              {a.pinned && <Badge variant="secondary">Pinned</Badge>}
+              <span className="font-medium text-sm">{a.title}</span>
+            </div>
+            <p className="mt-1 text-sm text-muted-foreground line-clamp-2">{a.body}</p>
+            <p className="mt-1 text-xs text-muted-foreground">{new Date(a.published_at).toLocaleDateString()}</p>
+          </li>
+        ))}
+      </ul>
+      <Link to="/announcements" className="mt-4 inline-block text-xs text-primary hover:underline">View all announcements →</Link>
+    </Card>
+  );
+}
+
+function UpcomingList({
+  title,
+  icon: Icon,
+  classes,
+  tournaments,
+  emptyLabel,
+}: {
+  title: string;
+  icon: React.ComponentType<{ className?: string }>;
+  classes: { id: string; title: string; starts_at: string }[];
+  tournaments: { id: string; name: string; starts_at: string }[];
+  emptyLabel: string;
+}) {
+  const rows = [
+    ...classes.map((c) => ({ kind: "Class" as const, id: c.id, label: c.title, starts_at: c.starts_at })),
+    ...tournaments.map((t) => ({ kind: "Tournament" as const, id: t.id, label: t.name, starts_at: t.starts_at })),
+  ].sort((a, b) => new Date(a.starts_at).getTime() - new Date(b.starts_at).getTime());
+
+  return (
+    <Card className="p-6">
+      <div className="flex items-center gap-2 mb-3">
+        <Icon className="h-4 w-4 text-primary/70" />
+        <h3 className="font-display text-xl">{title}</h3>
+      </div>
+      {rows.length === 0 ? (
+        <p className="text-sm text-muted-foreground">{emptyLabel}</p>
+      ) : (
+        <ul className="space-y-2">
+          {rows.map((r) =>
+            r.kind === "Class" ? (
+              <li key={`class-${r.id}`}>
+                <Link to="/classes/$classId" params={{ classId: r.id }} className="flex items-center justify-between rounded-md bg-secondary/40 px-3 py-2 text-sm hover:bg-secondary/60">
+                  <span className="flex items-center gap-2">
+                    <Badge variant="secondary">{r.kind}</Badge>
+                    {r.label}
+                  </span>
+                  <span className="text-xs text-muted-foreground">{formatWhen(r.starts_at)}</span>
+                </Link>
+              </li>
+            ) : (
+              <li key={`tournament-${r.id}`}>
+                <Link to="/tournaments/$tournamentId" params={{ tournamentId: r.id }} className="flex items-center justify-between rounded-md bg-secondary/40 px-3 py-2 text-sm hover:bg-secondary/60">
+                  <span className="flex items-center gap-2">
+                    <Badge variant="secondary">{r.kind}</Badge>
+                    {r.label}
+                  </span>
+                  <span className="text-xs text-muted-foreground">{formatWhen(r.starts_at)}</span>
+                </Link>
+              </li>
+            ),
+          )}
+        </ul>
+      )}
     </Card>
   );
 }
@@ -108,70 +220,225 @@ function SuperAdminView({ stats }: { stats?: RoleStats }) {
             <Row label="Expired" value={m?.expired ?? 0} tone="muted" />
           </ul>
         </Card>
-         <Card className="p-6">
-           <h3 className="font-display text-xl mb-1">Operations</h3>
-           <p className="text-sm text-muted-foreground mb-4">Open a workspace to manage the club.</p>
-          <div className="flex gap-2 flex-wrap">
-             <Link to="/members"><Badge>Member mgmt</Badge></Link>
-             <Link to="/organizations"><Badge>Organization mgmt</Badge></Link>
-             <Link to="/tutors"><Badge>Tutors</Badge></Link>
-             <Link to="/classes"><Badge>Classes</Badge></Link>
-             <Link to="/tournaments"><Badge>Tournaments</Badge></Link>
+        <Card className="p-6">
+          <h3 className="font-display text-xl mb-1">Recent signups</h3>
+          <p className="text-sm text-muted-foreground mb-4">The newest people on the platform.</p>
+          {(stats?.recentSignups ?? []).length === 0 ? (
+            <p className="text-sm text-muted-foreground">No signups yet.</p>
+          ) : (
+            <ul className="space-y-2 text-sm">
+              {stats!.recentSignups!.map((su) => (
+                <li key={su.id} className="flex items-center justify-between rounded-md bg-secondary/40 px-3 py-2">
+                  <span>{su.full_name}</span>
+                  <span className="text-xs text-muted-foreground">{new Date(su.created_at).toLocaleDateString()}</span>
+                </li>
+              ))}
+            </ul>
+          )}
+        </Card>
+      </div>
+      <Card className="p-6 mt-6">
+        <h3 className="font-display text-xl mb-1">Operations</h3>
+        <p className="text-sm text-muted-foreground mb-4">Open a workspace to manage the club.</p>
+        <div className="flex gap-2 flex-wrap">
+          <Link to="/members"><NavBadge>Member mgmt</NavBadge></Link>
+          <Link to="/organizations"><NavBadge>Organization mgmt</NavBadge></Link>
+          <Link to="/tutors"><NavBadge>Tutors</NavBadge></Link>
+          <Link to="/classes"><NavBadge>Classes</NavBadge></Link>
+          <Link to="/tournaments"><NavBadge>Tournaments</NavBadge></Link>
+        </div>
+      </Card>
+    </>
+  );
+}
+
+function OrgAdminView({
+  stats,
+  classes,
+  tournaments,
+}: {
+  stats?: RoleStats;
+  classes?: { id: string; title: string; starts_at: string; status: string; organization_id: string | null }[];
+  tournaments?: { id: string; name: string; starts_at: string; status: string; organization_id: string | null }[];
+}) {
+  const org = stats?.myOrg;
+  const pending = stats?.pendingRequests ?? [];
+  const orgClasses = upcoming((classes ?? []).filter((c) => c.organization_id === org?.id), ["scheduled", "in_progress"], 3);
+  const orgTournaments = upcoming((tournaments ?? []).filter((t) => t.organization_id === org?.id), ["registration_open", "in_progress"], 3);
+
+  return (
+    <>
+      <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <StatCard label="My organization" value={org?.name ?? "Not set up"} icon={Building2} />
+        <StatCard label="Members" value={String(stats?.myOrgMembers ?? 0)} hint={org?.studentCount ? `Capacity: ${org.studentCount}` : ""} icon={Users} />
+        <StatCard label="Active classes" value={String(stats?.myOrgClasses ?? 0)} hint="Scheduled or in progress" icon={BookOpen} />
+        <StatCard label="Pending requests" value={String(pending.length)} hint="Waiting for your approval" icon={UserCheck} />
+      </div>
+
+      <div className="grid lg:grid-cols-2 gap-4 mt-6">
+        <Card className="p-6">
+          <div className="flex items-center gap-2 mb-1">
+            <KeyRound className="h-4 w-4 text-primary/70" />
+            <h3 className="font-display text-xl">Join code</h3>
+          </div>
+          <p className="text-sm text-muted-foreground mb-4">Share this so members can add your organization to their account.</p>
+          {org?.joinCode ? (
+            <code className="rounded-md bg-secondary/40 px-4 py-2 text-lg font-mono tracking-widest inline-block">{org.joinCode}</code>
+          ) : (
+            <p className="text-sm text-muted-foreground">No code yet — generate one on the organization page.</p>
+          )}
+          <div className="mt-4">
+            <Link to="/organization"><Button variant="secondary" size="sm">Manage join settings</Button></Link>
+          </div>
+        </Card>
+
+        <Card className="p-6">
+          <div className="flex items-center gap-2 mb-1">
+            <UserCheck className="h-4 w-4 text-primary/70" />
+            <h3 className="font-display text-xl">Pending requests</h3>
+          </div>
+          <p className="text-sm text-muted-foreground mb-4">People waiting to join your organization.</p>
+          {pending.length === 0 ? (
+            <p className="text-sm text-muted-foreground">Nothing pending.</p>
+          ) : (
+            <ul className="space-y-2 text-sm">
+              {pending.slice(0, 3).map((p) => (
+                <li key={p.id} className="flex items-center justify-between rounded-md bg-secondary/40 px-3 py-2">
+                  <span>{p.full_name}</span>
+                  <span className="text-xs text-muted-foreground">{new Date(p.joined_at).toLocaleDateString()}</span>
+                </li>
+              ))}
+            </ul>
+          )}
+          <div className="mt-4">
+            <Link to="/organization"><Button variant="secondary" size="sm">Review requests</Button></Link>
           </div>
         </Card>
       </div>
-    </>
-  );
-}
 
-function OrgAdminView({ stats }: { stats?: RoleStats }) {
-  const org = stats?.myOrg;
-  return (
-    <>
-      <div className="grid sm:grid-cols-3 gap-4">
-        <StatCard label="My organization" value={org?.name ?? "Not set up"} icon={Building2} />
-        <StatCard label="Students enrolled" value={String(stats?.myOrgMembers ?? 0)} hint={org?.studentCount ? `Capacity: ${org.studentCount}` : ""} icon={Users} />
-         <StatCard label="Active classes" value={String(stats?.myOrgClasses ?? 0)} hint="Scheduled or in progress" icon={BookOpen} />
+      <div className="mt-6">
+        <UpcomingList
+          title="Up next for your organization"
+          icon={Trophy}
+          classes={orgClasses}
+          tournaments={orgTournaments}
+          emptyLabel="Nothing scheduled yet."
+        />
       </div>
-       <Card className="p-6 mt-6">
-        <h3 className="font-display text-xl mb-1">Your organization workspace</h3>
-         <p className="text-sm text-muted-foreground">Enrol students, schedule classes, and track progress from your organization workspace.</p>
-      </Card>
     </>
   );
 }
 
-function TutorView({ stats }: { stats?: RoleStats }) {
+function TutorView({
+  stats,
+  classes,
+  myId,
+}: {
+  stats?: RoleStats;
+  classes?: { id: string; title: string; starts_at: string; status: string; tutor_id: string | null }[];
+  myId?: string;
+}) {
+  const myClasses = upcoming((classes ?? []).filter((c) => c.tutor_id === myId), ["scheduled", "in_progress"], 5);
   return (
     <>
       <div className="grid sm:grid-cols-3 gap-4">
-         <StatCard label="Active classes" value={String(stats?.tutor?.classesThisWeek ?? 0)} icon={BookOpen} />
-         <StatCard label="Students" value={String(stats?.tutor?.students ?? 0)} icon={GraduationCap} />
-         <StatCard label="Teaching tools" value="Ready" hint="Attendance and notes" icon={Sparkles} />
+        <StatCard label="Active classes" value={String(stats?.tutor?.classesThisWeek ?? 0)} icon={BookOpen} />
+        <StatCard label="Students" value={String(stats?.tutor?.students ?? 0)} icon={GraduationCap} />
+        <StatCard label="Teaching tools" value="Ready" hint="Attendance and notes" icon={Sparkles} />
       </div>
       <Card className="p-6 mt-6">
-        <h3 className="font-display text-xl mb-1">Tutor workspace</h3>
-         <p className="text-sm text-muted-foreground">Your class schedule, attendance, and session notes are available from Classes.</p>
+        <div className="flex items-center gap-2 mb-3">
+          <BookOpen className="h-4 w-4 text-primary/70" />
+          <h3 className="font-display text-xl">Your upcoming classes</h3>
+        </div>
+        {myClasses.length === 0 ? (
+          <p className="text-sm text-muted-foreground">Nothing scheduled. New classes you teach will show up here.</p>
+        ) : (
+          <ul className="space-y-2">
+            {myClasses.map((c) => (
+              <li key={c.id}>
+                <Link to="/classes/$classId" params={{ classId: c.id }} className="flex items-center justify-between rounded-md bg-secondary/40 px-3 py-2 text-sm hover:bg-secondary/60">
+                  <span>{c.title}</span>
+                  <span className="text-xs text-muted-foreground">{formatWhen(c.starts_at)}</span>
+                </Link>
+              </li>
+            ))}
+          </ul>
+        )}
       </Card>
     </>
   );
 }
 
-function MemberView() {
-  const { profile } = useAuth();
+function MemberView({
+  classes,
+  tournaments,
+}: {
+  classes?: { id: string; title: string; starts_at: string; status: string }[];
+  tournaments?: { id: string; name: string; starts_at: string; status: string }[];
+}) {
+  const fetchChess = useServerFn(getMyChessProfile);
+  const { data: chess } = useQuery({ queryKey: ["my-chess-profile"], queryFn: () => fetchChess(), staleTime: 30_000 });
+  const topRating = chess?.ratings?.[0];
+
+  const fetchMemberships = useServerFn(listMyMemberships);
+  const { data: memberships } = useQuery({ queryKey: ["my-memberships"], queryFn: () => fetchMemberships(), staleTime: 30_000 });
+
+  const myClasses = upcoming(classes, ["scheduled", "in_progress"], 3);
+  const myTournaments = upcoming(tournaments, ["registration_open", "in_progress"], 3);
+  const approvedOrgs = (memberships ?? []).filter((m) => m.status === "approved");
+
   return (
     <>
       <div className="grid sm:grid-cols-3 gap-4">
-        <StatCard label="Chess rating" value={String(profile?.chess_rating ?? "—")} hint="Updated after each game" icon={Trophy} />
-        <StatCard label="Level" value={profile?.membership_level ?? "—"} hint="Beginner · Intermediate · Advanced" icon={Sparkles} />
-        <StatCard label="Membership" value="Active" hint="All features unlocked" icon={CreditCard} />
+        <StatCard
+          label="Chess rating"
+          value={topRating ? String(topRating.rating) : "Unrated"}
+          hint={topRating ? `${topRating.variant} · ${topRating.time_control}` : "Play a rated game to get started"}
+          icon={Trophy}
+        />
+        <StatCard label="Games played" value={String(chess?.games?.length ?? 0)} hint="Most recent 25" icon={Sparkles} />
+        <StatCard label="Organizations" value={String(approvedOrgs.length)} hint={approvedOrgs.length === 0 ? "Join one with a code" : "Active memberships"} icon={Building2} />
       </div>
+
+      <div className="grid lg:grid-cols-2 gap-4 mt-6">
+        <UpcomingList
+          title="Up next"
+          icon={BookOpen}
+          classes={myClasses}
+          tournaments={myTournaments}
+          emptyLabel="No upcoming classes or tournaments yet — browse what's on."
+        />
+        <Card className="p-6">
+          <div className="flex items-center gap-2 mb-1">
+            <Building2 className="h-4 w-4 text-primary/70" />
+            <h3 className="font-display text-xl">Your organizations</h3>
+          </div>
+          <p className="text-sm text-muted-foreground mb-4">Every school, club, or academy you belong to.</p>
+          {(memberships ?? []).length === 0 ? (
+            <p className="text-sm text-muted-foreground">You haven't joined one yet.</p>
+          ) : (
+            <ul className="space-y-2 text-sm">
+              {memberships!.map((m) => (
+                <li key={m.id} className="flex items-center justify-between rounded-md bg-secondary/40 px-3 py-2">
+                  <span>{m.organization_name}</span>
+                  <Badge variant={m.status === "approved" ? "default" : m.status === "pending" ? "secondary" : "outline"}>{m.status}</Badge>
+                </li>
+              ))}
+            </ul>
+          )}
+          <div className="mt-4">
+            <Link to="/join"><Button variant="secondary" size="sm">Join with a code</Button></Link>
+          </div>
+        </Card>
+      </div>
+
       <Card className="p-6 mt-6">
         <h3 className="font-display text-xl mb-2">Welcome to the club</h3>
         <p className="text-sm text-muted-foreground">Classes, tournaments, casual play, and puzzles roll out in the next phases. Your membership keeps everything in one place.</p>
         <div className="mt-4 flex gap-2">
-           <Link to="/classes"><Button variant="secondary" size="sm">Browse classes</Button></Link>
-           <Link to="/tournaments"><Button variant="secondary" size="sm">Upcoming tournaments</Button></Link>
+          <Link to="/classes"><Button variant="secondary" size="sm">Browse classes</Button></Link>
+          <Link to="/tournaments"><Button variant="secondary" size="sm">Upcoming tournaments</Button></Link>
         </div>
       </Card>
     </>
@@ -187,6 +454,6 @@ function Row({ label, value, tone }: { label: string; value: number; tone?: "pri
   );
 }
 
-function Badge({ children }: { children: React.ReactNode }) {
-  return <span className="inline-flex items-center rounded-full border border-border/60 bg-secondary/40 px-3 py-1 text-xs">{children}</span>;
+function NavBadge({ children }: { children: React.ReactNode }) {
+  return <span className="inline-flex items-center rounded-full border border-border/60 bg-secondary/40 px-3 py-1 text-xs hover:bg-secondary/60 transition-colors">{children}</span>;
 }

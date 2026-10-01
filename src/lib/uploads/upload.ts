@@ -1,10 +1,10 @@
 import { supabase } from "@/integrations/supabase/client";
 
-export type UploadBucket = "avatars" | "school-logos" | "tournament-banners";
+export type UploadBucket = "avatars" | "org-logos" | "tournament-banners";
 
 const MAX_SIZE: Record<UploadBucket, number> = {
   "avatars": 5 * 1024 * 1024,
-  "school-logos": 5 * 1024 * 1024,
+  "org-logos": 5 * 1024 * 1024,
   "tournament-banners": 10 * 1024 * 1024,
 };
 

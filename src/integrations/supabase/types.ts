@@ -12,7 +12,7 @@ export type Database = {
   __InternalSupabase: {
     PostgrestVersion: "14.5"
   }
-  public: {
+  club: {
     Tables: {
       announcements: {
         Row: {
@@ -22,9 +22,9 @@ export type Database = {
           created_by: string
           expires_at: string | null
           id: string
+          organization_id: string | null
           pinned: boolean
           published_at: string
-          school_id: string | null
           title: string
           updated_at: string
         }
@@ -35,9 +35,9 @@ export type Database = {
           created_by: string
           expires_at?: string | null
           id?: string
+          organization_id?: string | null
           pinned?: boolean
           published_at?: string
-          school_id?: string | null
           title: string
           updated_at?: string
         }
@@ -48,25 +48,25 @@ export type Database = {
           created_by?: string
           expires_at?: string | null
           id?: string
+          organization_id?: string | null
           pinned?: boolean
           published_at?: string
-          school_id?: string | null
           title?: string
           updated_at?: string
         }
         Relationships: [
           {
-            foreignKeyName: "announcements_school_id_fkey"
-            columns: ["school_id"]
+            foreignKeyName: "announcements_organization_id_fkey"
+            columns: ["organization_id"]
             isOneToOne: false
-            referencedRelation: "schools"
+            referencedRelation: "organizations"
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "announcements_school_id_fkey"
-            columns: ["school_id"]
+            foreignKeyName: "announcements_organization_id_fkey"
+            columns: ["organization_id"]
             isOneToOne: false
-            referencedRelation: "schools_public"
+            referencedRelation: "organizations_public"
             referencedColumns: ["id"]
           },
         ]
@@ -155,13 +155,13 @@ export type Database = {
           description: string | null
           ends_at: string | null
           id: string
-          level: Database["public"]["Enums"]["class_level"]
+          level: Database["club"]["Enums"]["class_level"]
           meeting_url: string | null
+          organization_id: string | null
           resources: Json | null
-          school_id: string | null
           session_notes: string | null
           starts_at: string
-          status: Database["public"]["Enums"]["class_status"]
+          status: Database["club"]["Enums"]["class_status"]
           title: string
           tutor_id: string | null
           updated_at: string
@@ -174,13 +174,13 @@ export type Database = {
           description?: string | null
           ends_at?: string | null
           id?: string
-          level?: Database["public"]["Enums"]["class_level"]
+          level?: Database["club"]["Enums"]["class_level"]
           meeting_url?: string | null
+          organization_id?: string | null
           resources?: Json | null
-          school_id?: string | null
           session_notes?: string | null
           starts_at: string
-          status?: Database["public"]["Enums"]["class_status"]
+          status?: Database["club"]["Enums"]["class_status"]
           title: string
           tutor_id?: string | null
           updated_at?: string
@@ -193,71 +193,35 @@ export type Database = {
           description?: string | null
           ends_at?: string | null
           id?: string
-          level?: Database["public"]["Enums"]["class_level"]
+          level?: Database["club"]["Enums"]["class_level"]
           meeting_url?: string | null
+          organization_id?: string | null
           resources?: Json | null
-          school_id?: string | null
           session_notes?: string | null
           starts_at?: string
-          status?: Database["public"]["Enums"]["class_status"]
+          status?: Database["club"]["Enums"]["class_status"]
           title?: string
           tutor_id?: string | null
           updated_at?: string
         }
         Relationships: [
           {
-            foreignKeyName: "classes_school_id_fkey"
-            columns: ["school_id"]
+            foreignKeyName: "classes_organization_id_fkey"
+            columns: ["organization_id"]
             isOneToOne: false
-            referencedRelation: "schools"
+            referencedRelation: "organizations"
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "classes_school_id_fkey"
-            columns: ["school_id"]
+            foreignKeyName: "classes_organization_id_fkey"
+            columns: ["organization_id"]
             isOneToOne: false
-            referencedRelation: "schools_public"
+            referencedRelation: "organizations_public"
             referencedColumns: ["id"]
           },
         ]
       }
-      hamduk_accounts: {
-        Row: {
-          admin_note: string | null
-          created_at: string
-          hamduk_username: string
-          id: string
-          last_synced_at: string | null
-          link_status: string
-          sync_error: string | null
-          updated_at: string
-          user_id: string
-        }
-        Insert: {
-          admin_note?: string | null
-          created_at?: string
-          hamduk_username: string
-          id?: string
-          last_synced_at?: string | null
-          link_status?: string
-          sync_error?: string | null
-          updated_at?: string
-          user_id: string
-        }
-        Update: {
-          admin_note?: string | null
-          created_at?: string
-          hamduk_username?: string
-          id?: string
-          last_synced_at?: string | null
-          link_status?: string
-          sync_error?: string | null
-          updated_at?: string
-          user_id?: string
-        }
-        Relationships: []
-      }
-      hamduk_embeds: {
+      embeds: {
         Row: {
           config: Json
           created_at: string
@@ -293,150 +257,6 @@ export type Database = {
           kind?: string
           label?: string
           token?: string
-        }
-        Relationships: []
-      }
-      hamduk_games: {
-        Row: {
-          black: string | null
-          black_rating_delta: number | null
-          end_reason: string | null
-          game_id: string
-          id: string
-          moves: number | null
-          pgn: string | null
-          played_at: string | null
-          rated: boolean | null
-          result: string | null
-          status: string | null
-          synced_at: string
-          time_control: string | null
-          user_id: string
-          variant: string | null
-          white: string | null
-          white_rating_delta: number | null
-        }
-        Insert: {
-          black?: string | null
-          black_rating_delta?: number | null
-          end_reason?: string | null
-          game_id: string
-          id?: string
-          moves?: number | null
-          pgn?: string | null
-          played_at?: string | null
-          rated?: boolean | null
-          result?: string | null
-          status?: string | null
-          synced_at?: string
-          time_control?: string | null
-          user_id: string
-          variant?: string | null
-          white?: string | null
-          white_rating_delta?: number | null
-        }
-        Update: {
-          black?: string | null
-          black_rating_delta?: number | null
-          end_reason?: string | null
-          game_id?: string
-          id?: string
-          moves?: number | null
-          pgn?: string | null
-          played_at?: string | null
-          rated?: boolean | null
-          result?: string | null
-          status?: string | null
-          synced_at?: string
-          time_control?: string | null
-          user_id?: string
-          variant?: string | null
-          white?: string | null
-          white_rating_delta?: number | null
-        }
-        Relationships: []
-      }
-      hamduk_ratings: {
-        Row: {
-          breakdown: Json
-          classical_rating: number | null
-          country: string | null
-          hamduk_username: string
-          id: string
-          synced_at: string
-          user_id: string
-        }
-        Insert: {
-          breakdown?: Json
-          classical_rating?: number | null
-          country?: string | null
-          hamduk_username: string
-          id?: string
-          synced_at?: string
-          user_id: string
-        }
-        Update: {
-          breakdown?: Json
-          classical_rating?: number | null
-          country?: string | null
-          hamduk_username?: string
-          id?: string
-          synced_at?: string
-          user_id?: string
-        }
-        Relationships: []
-      }
-      hamduk_webhook_events: {
-        Row: {
-          event: string
-          id: string
-          payload: Json | null
-          received_at: string
-          signature_valid: boolean
-        }
-        Insert: {
-          event: string
-          id?: string
-          payload?: Json | null
-          received_at?: string
-          signature_valid?: boolean
-        }
-        Update: {
-          event?: string
-          id?: string
-          payload?: Json | null
-          received_at?: string
-          signature_valid?: boolean
-        }
-        Relationships: []
-      }
-      hamduk_webhooks: {
-        Row: {
-          created_at: string
-          disabled: boolean
-          events: string[]
-          id: string
-          remote_id: string
-          signing_secret: string
-          url: string
-        }
-        Insert: {
-          created_at?: string
-          disabled?: boolean
-          events?: string[]
-          id?: string
-          remote_id: string
-          signing_secret: string
-          url: string
-        }
-        Update: {
-          created_at?: string
-          disabled?: boolean
-          events?: string[]
-          id?: string
-          remote_id?: string
-          signing_secret?: string
-          url?: string
         }
         Relationships: []
       }
@@ -554,6 +374,125 @@ export type Database = {
         }
         Relationships: []
       }
+      organization_memberships: {
+        Row: {
+          cohort: string | null
+          id: string
+          joined_at: string
+          organization_id: string
+          role_in_org: string
+          user_id: string
+        }
+        Insert: {
+          cohort?: string | null
+          id?: string
+          joined_at?: string
+          organization_id: string
+          role_in_org?: string
+          user_id: string
+        }
+        Update: {
+          cohort?: string | null
+          id?: string
+          joined_at?: string
+          organization_id?: string
+          role_in_org?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "organization_memberships_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "organization_memberships_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations_public"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      organizations: {
+        Row: {
+          address: string | null
+          contact_email: string | null
+          contact_person: string | null
+          contact_phone: string | null
+          created_at: string
+          id: string
+          is_suspended: boolean | null
+          name: string
+          owner_user_id: string | null
+          program_tier: Database["club"]["Enums"]["organization_tier"] | null
+          selected_plan_id: string | null
+          student_count: number | null
+          subscription_expires_at: string | null
+          subscription_started_at: string | null
+          subscription_status:
+            | Database["club"]["Enums"]["subscription_status"]
+            | null
+          suspended_reason: string | null
+          type: Database["club"]["Enums"]["organization_type"]
+          updated_at: string
+        }
+        Insert: {
+          address?: string | null
+          contact_email?: string | null
+          contact_person?: string | null
+          contact_phone?: string | null
+          created_at?: string
+          id?: string
+          is_suspended?: boolean | null
+          name: string
+          owner_user_id?: string | null
+          program_tier?: Database["club"]["Enums"]["organization_tier"] | null
+          selected_plan_id?: string | null
+          student_count?: number | null
+          subscription_expires_at?: string | null
+          subscription_started_at?: string | null
+          subscription_status?:
+            | Database["club"]["Enums"]["subscription_status"]
+            | null
+          suspended_reason?: string | null
+          type?: Database["club"]["Enums"]["organization_type"]
+          updated_at?: string
+        }
+        Update: {
+          address?: string | null
+          contact_email?: string | null
+          contact_person?: string | null
+          contact_phone?: string | null
+          created_at?: string
+          id?: string
+          is_suspended?: boolean | null
+          name?: string
+          owner_user_id?: string | null
+          program_tier?: Database["club"]["Enums"]["organization_tier"] | null
+          selected_plan_id?: string | null
+          student_count?: number | null
+          subscription_expires_at?: string | null
+          subscription_started_at?: string | null
+          subscription_status?:
+            | Database["club"]["Enums"]["subscription_status"]
+            | null
+          suspended_reason?: string | null
+          type?: Database["club"]["Enums"]["organization_type"]
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "organizations_selected_plan_fk"
+            columns: ["selected_plan_id"]
+            isOneToOne: false
+            referencedRelation: "plans"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       payments: {
         Row: {
           amount_kobo: number
@@ -561,11 +500,11 @@ export type Database = {
           created_at: string
           currency: string
           id: string
+          organization_id: string | null
           paid_at: string | null
           plan_id: string
           raw: Json | null
           reference: string
-          school_id: string | null
           status: string
           updated_at: string
           user_id: string
@@ -576,11 +515,11 @@ export type Database = {
           created_at?: string
           currency?: string
           id?: string
+          organization_id?: string | null
           paid_at?: string | null
           plan_id: string
           raw?: Json | null
           reference: string
-          school_id?: string | null
           status?: string
           updated_at?: string
           user_id: string
@@ -591,16 +530,30 @@ export type Database = {
           created_at?: string
           currency?: string
           id?: string
+          organization_id?: string | null
           paid_at?: string | null
           plan_id?: string
           raw?: Json | null
           reference?: string
-          school_id?: string | null
           status?: string
           updated_at?: string
           user_id?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "payments_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "payments_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations_public"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "payments_plan_id_fkey"
             columns: ["plan_id"]
@@ -663,7 +616,7 @@ export type Database = {
       }
       profiles: {
         Row: {
-          account_state: Database["public"]["Enums"]["account_state"] | null
+          account_state: Database["club"]["Enums"]["account_state"] | null
           avatar_url: string | null
           billing_cycle: string | null
           bio: string | null
@@ -681,9 +634,7 @@ export type Database = {
           location: string | null
           member_since: string | null
           membership_expires_at: string | null
-          membership_level:
-            | Database["public"]["Enums"]["membership_level"]
-            | null
+          membership_level: Database["club"]["Enums"]["membership_level"] | null
           membership_type: string | null
           notification_prefs: Json
           onboarding_completed: boolean | null
@@ -693,10 +644,10 @@ export type Database = {
           theme: string | null
           timezone: string | null
           updated_at: string
-          visibility: Database["public"]["Enums"]["profile_visibility"] | null
+          visibility: Database["club"]["Enums"]["profile_visibility"] | null
         }
         Insert: {
-          account_state?: Database["public"]["Enums"]["account_state"] | null
+          account_state?: Database["club"]["Enums"]["account_state"] | null
           avatar_url?: string | null
           billing_cycle?: string | null
           bio?: string | null
@@ -715,7 +666,7 @@ export type Database = {
           member_since?: string | null
           membership_expires_at?: string | null
           membership_level?:
-            | Database["public"]["Enums"]["membership_level"]
+            | Database["club"]["Enums"]["membership_level"]
             | null
           membership_type?: string | null
           notification_prefs?: Json
@@ -726,10 +677,10 @@ export type Database = {
           theme?: string | null
           timezone?: string | null
           updated_at?: string
-          visibility?: Database["public"]["Enums"]["profile_visibility"] | null
+          visibility?: Database["club"]["Enums"]["profile_visibility"] | null
         }
         Update: {
-          account_state?: Database["public"]["Enums"]["account_state"] | null
+          account_state?: Database["club"]["Enums"]["account_state"] | null
           avatar_url?: string | null
           billing_cycle?: string | null
           bio?: string | null
@@ -748,7 +699,7 @@ export type Database = {
           member_since?: string | null
           membership_expires_at?: string | null
           membership_level?:
-            | Database["public"]["Enums"]["membership_level"]
+            | Database["club"]["Enums"]["membership_level"]
             | null
           membership_type?: string | null
           notification_prefs?: Json
@@ -759,133 +710,11 @@ export type Database = {
           theme?: string | null
           timezone?: string | null
           updated_at?: string
-          visibility?: Database["public"]["Enums"]["profile_visibility"] | null
+          visibility?: Database["club"]["Enums"]["profile_visibility"] | null
         }
         Relationships: [
           {
-            foreignKeyName: "profiles_selected_plan_id_fkey"
-            columns: ["selected_plan_id"]
-            isOneToOne: false
-            referencedRelation: "plans"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      school_memberships: {
-        Row: {
-          cohort: string | null
-          id: string
-          joined_at: string
-          role_in_school: string
-          school_id: string
-          user_id: string
-        }
-        Insert: {
-          cohort?: string | null
-          id?: string
-          joined_at?: string
-          role_in_school?: string
-          school_id: string
-          user_id: string
-        }
-        Update: {
-          cohort?: string | null
-          id?: string
-          joined_at?: string
-          role_in_school?: string
-          school_id?: string
-          user_id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "school_memberships_school_id_fkey"
-            columns: ["school_id"]
-            isOneToOne: false
-            referencedRelation: "schools"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "school_memberships_school_id_fkey"
-            columns: ["school_id"]
-            isOneToOne: false
-            referencedRelation: "schools_public"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      schools: {
-        Row: {
-          address: string | null
-          contact_email: string | null
-          contact_person: string | null
-          contact_phone: string | null
-          created_at: string
-          id: string
-          is_suspended: boolean | null
-          name: string
-          owner_user_id: string | null
-          program_tier:
-            | Database["public"]["Enums"]["school_program_tier"]
-            | null
-          selected_plan_id: string | null
-          student_count: number | null
-          subscription_expires_at: string | null
-          subscription_started_at: string | null
-          subscription_status:
-            | Database["public"]["Enums"]["subscription_status"]
-            | null
-          suspended_reason: string | null
-          updated_at: string
-        }
-        Insert: {
-          address?: string | null
-          contact_email?: string | null
-          contact_person?: string | null
-          contact_phone?: string | null
-          created_at?: string
-          id?: string
-          is_suspended?: boolean | null
-          name: string
-          owner_user_id?: string | null
-          program_tier?:
-            | Database["public"]["Enums"]["school_program_tier"]
-            | null
-          selected_plan_id?: string | null
-          student_count?: number | null
-          subscription_expires_at?: string | null
-          subscription_started_at?: string | null
-          subscription_status?:
-            | Database["public"]["Enums"]["subscription_status"]
-            | null
-          suspended_reason?: string | null
-          updated_at?: string
-        }
-        Update: {
-          address?: string | null
-          contact_email?: string | null
-          contact_person?: string | null
-          contact_phone?: string | null
-          created_at?: string
-          id?: string
-          is_suspended?: boolean | null
-          name?: string
-          owner_user_id?: string | null
-          program_tier?:
-            | Database["public"]["Enums"]["school_program_tier"]
-            | null
-          selected_plan_id?: string | null
-          student_count?: number | null
-          subscription_expires_at?: string | null
-          subscription_started_at?: string | null
-          subscription_status?:
-            | Database["public"]["Enums"]["subscription_status"]
-            | null
-          suspended_reason?: string | null
-          updated_at?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "schools_selected_plan_id_fkey"
+            foreignKeyName: "profiles_selected_plan_fk"
             columns: ["selected_plan_id"]
             isOneToOne: false
             referencedRelation: "plans"
@@ -1020,14 +849,14 @@ export type Database = {
           created_by: string | null
           description: string | null
           ends_at: string | null
-          format: Database["public"]["Enums"]["tournament_format"]
+          format: Database["club"]["Enums"]["tournament_format"]
           id: string
           max_participants: number | null
           name: string
+          organization_id: string | null
           rounds: number | null
-          school_id: string | null
           starts_at: string
-          status: Database["public"]["Enums"]["tournament_status"]
+          status: Database["club"]["Enums"]["tournament_status"]
           updated_at: string
         }
         Insert: {
@@ -1035,14 +864,14 @@ export type Database = {
           created_by?: string | null
           description?: string | null
           ends_at?: string | null
-          format?: Database["public"]["Enums"]["tournament_format"]
+          format?: Database["club"]["Enums"]["tournament_format"]
           id?: string
           max_participants?: number | null
           name: string
+          organization_id?: string | null
           rounds?: number | null
-          school_id?: string | null
           starts_at: string
-          status?: Database["public"]["Enums"]["tournament_status"]
+          status?: Database["club"]["Enums"]["tournament_status"]
           updated_at?: string
         }
         Update: {
@@ -1050,29 +879,29 @@ export type Database = {
           created_by?: string | null
           description?: string | null
           ends_at?: string | null
-          format?: Database["public"]["Enums"]["tournament_format"]
+          format?: Database["club"]["Enums"]["tournament_format"]
           id?: string
           max_participants?: number | null
           name?: string
+          organization_id?: string | null
           rounds?: number | null
-          school_id?: string | null
           starts_at?: string
-          status?: Database["public"]["Enums"]["tournament_status"]
+          status?: Database["club"]["Enums"]["tournament_status"]
           updated_at?: string
         }
         Relationships: [
           {
-            foreignKeyName: "tournaments_school_id_fkey"
-            columns: ["school_id"]
+            foreignKeyName: "tournaments_organization_id_fkey"
+            columns: ["organization_id"]
             isOneToOne: false
-            referencedRelation: "schools"
+            referencedRelation: "organizations"
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "tournaments_school_id_fkey"
-            columns: ["school_id"]
+            foreignKeyName: "tournaments_organization_id_fkey"
+            columns: ["organization_id"]
             isOneToOne: false
-            referencedRelation: "schools_public"
+            referencedRelation: "organizations_public"
             referencedColumns: ["id"]
           },
         ]
@@ -1082,21 +911,21 @@ export type Database = {
           assigned_at: string
           assigned_by: string | null
           id: string
-          role: Database["public"]["Enums"]["app_role"]
+          role: Database["club"]["Enums"]["app_role"]
           user_id: string
         }
         Insert: {
           assigned_at?: string
           assigned_by?: string | null
           id?: string
-          role: Database["public"]["Enums"]["app_role"]
+          role: Database["club"]["Enums"]["app_role"]
           user_id: string
         }
         Update: {
           assigned_at?: string
           assigned_by?: string | null
           id?: string
-          role?: Database["public"]["Enums"]["app_role"]
+          role?: Database["club"]["Enums"]["app_role"]
           user_id?: string
         }
         Relationships: []
@@ -1110,10 +939,10 @@ export type Database = {
           description: string | null
           ends_at: string | null
           id: string | null
-          level: Database["public"]["Enums"]["class_level"] | null
-          school_id: string | null
+          level: Database["club"]["Enums"]["class_level"] | null
+          organization_id: string | null
           starts_at: string | null
-          status: Database["public"]["Enums"]["class_status"] | null
+          status: Database["club"]["Enums"]["class_status"] | null
           title: string | null
           tutor_id: string | null
         }
@@ -1123,10 +952,10 @@ export type Database = {
           description?: string | null
           ends_at?: string | null
           id?: string | null
-          level?: Database["public"]["Enums"]["class_level"] | null
-          school_id?: string | null
+          level?: Database["club"]["Enums"]["class_level"] | null
+          organization_id?: string | null
           starts_at?: string | null
-          status?: Database["public"]["Enums"]["class_status"] | null
+          status?: Database["club"]["Enums"]["class_status"] | null
           title?: string | null
           tutor_id?: string | null
         }
@@ -1136,29 +965,56 @@ export type Database = {
           description?: string | null
           ends_at?: string | null
           id?: string | null
-          level?: Database["public"]["Enums"]["class_level"] | null
-          school_id?: string | null
+          level?: Database["club"]["Enums"]["class_level"] | null
+          organization_id?: string | null
           starts_at?: string | null
-          status?: Database["public"]["Enums"]["class_status"] | null
+          status?: Database["club"]["Enums"]["class_status"] | null
           title?: string | null
           tutor_id?: string | null
         }
         Relationships: [
           {
-            foreignKeyName: "classes_school_id_fkey"
-            columns: ["school_id"]
+            foreignKeyName: "classes_organization_id_fkey"
+            columns: ["organization_id"]
             isOneToOne: false
-            referencedRelation: "schools"
+            referencedRelation: "organizations"
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "classes_school_id_fkey"
-            columns: ["school_id"]
+            foreignKeyName: "classes_organization_id_fkey"
+            columns: ["organization_id"]
             isOneToOne: false
-            referencedRelation: "schools_public"
+            referencedRelation: "organizations_public"
             referencedColumns: ["id"]
           },
         ]
+      }
+      organizations_public: {
+        Row: {
+          address: string | null
+          created_at: string | null
+          id: string | null
+          name: string | null
+          student_count: number | null
+          type: Database["club"]["Enums"]["organization_type"] | null
+        }
+        Insert: {
+          address?: string | null
+          created_at?: string | null
+          id?: string | null
+          name?: string | null
+          student_count?: number | null
+          type?: Database["club"]["Enums"]["organization_type"] | null
+        }
+        Update: {
+          address?: string | null
+          created_at?: string | null
+          id?: string | null
+          name?: string | null
+          student_count?: number | null
+          type?: Database["club"]["Enums"]["organization_type"] | null
+        }
+        Relationships: []
       }
       profiles_public: {
         Row: {
@@ -1167,10 +1023,8 @@ export type Database = {
           full_name: string | null
           id: string | null
           member_since: string | null
-          membership_level:
-            | Database["public"]["Enums"]["membership_level"]
-            | null
-          visibility: Database["public"]["Enums"]["profile_visibility"] | null
+          membership_level: Database["club"]["Enums"]["membership_level"] | null
+          visibility: Database["club"]["Enums"]["profile_visibility"] | null
         }
         Insert: {
           avatar_url?: string | null
@@ -1179,9 +1033,9 @@ export type Database = {
           id?: string | null
           member_since?: string | null
           membership_level?:
-            | Database["public"]["Enums"]["membership_level"]
+            | Database["club"]["Enums"]["membership_level"]
             | null
-          visibility?: Database["public"]["Enums"]["profile_visibility"] | null
+          visibility?: Database["club"]["Enums"]["profile_visibility"] | null
         }
         Update: {
           avatar_url?: string | null
@@ -1190,33 +1044,9 @@ export type Database = {
           id?: string | null
           member_since?: string | null
           membership_level?:
-            | Database["public"]["Enums"]["membership_level"]
+            | Database["club"]["Enums"]["membership_level"]
             | null
-          visibility?: Database["public"]["Enums"]["profile_visibility"] | null
-        }
-        Relationships: []
-      }
-      schools_public: {
-        Row: {
-          address: string | null
-          created_at: string | null
-          id: string | null
-          name: string | null
-          student_count: number | null
-        }
-        Insert: {
-          address?: string | null
-          created_at?: string | null
-          id?: string | null
-          name?: string | null
-          student_count?: number | null
-        }
-        Update: {
-          address?: string | null
-          created_at?: string | null
-          id?: string | null
-          name?: string | null
-          student_count?: number | null
+          visibility?: Database["club"]["Enums"]["profile_visibility"] | null
         }
         Relationships: []
       }
@@ -1224,17 +1054,14 @@ export type Database = {
     Functions: {
       get_user_roles: {
         Args: { _user_id: string }
-        Returns: Database["public"]["Enums"]["app_role"][]
+        Returns: Database["club"]["Enums"]["app_role"][]
       }
       has_role: {
-        Args: {
-          _role: Database["public"]["Enums"]["app_role"]
-          _user_id: string
-        }
+        Args: { _role: Database["club"]["Enums"]["app_role"]; _user_id: string }
         Returns: boolean
       }
-      is_school_member: {
-        Args: { _school_id: string; _user_id: string }
+      is_org_member: {
+        Args: { _organization_id: string; _user_id: string }
         Returns: boolean
       }
       log_audit_event: {
@@ -1254,7 +1081,7 @@ export type Database = {
         | "active"
         | "expired"
         | "suspended"
-      app_role: "super_admin" | "school_admin" | "tutor" | "member"
+      app_role: "super_admin" | "org_admin" | "tutor" | "member"
       class_level: "beginner" | "intermediate" | "advanced" | "all_levels"
       class_status:
         | "draft"
@@ -1263,8 +1090,9 @@ export type Database = {
         | "completed"
         | "cancelled"
       membership_level: "beginner" | "intermediate" | "advanced"
+      organization_tier: "starter" | "standard" | "premium"
+      organization_type: "school" | "club" | "academy" | "other"
       profile_visibility: "members_only" | "public"
-      school_program_tier: "starter" | "standard" | "premium"
       subscription_status:
         | "none"
         | "pending"
@@ -1287,7 +1115,7 @@ export type Database = {
 
 type DatabaseWithoutInternals = Omit<Database, "__InternalSupabase">
 
-type DefaultSchema = DatabaseWithoutInternals[Extract<keyof Database, "public">]
+type DefaultSchema = DatabaseWithoutInternals[Extract<keyof Database, "club">]
 
 export type Tables<
   DefaultSchemaTableNameOrOptions extends
@@ -1403,7 +1231,7 @@ export type CompositeTypes<
     : never
 
 export const Constants = {
-  public: {
+  club: {
     Enums: {
       account_state: [
         "unverified",
@@ -1412,7 +1240,7 @@ export const Constants = {
         "expired",
         "suspended",
       ],
-      app_role: ["super_admin", "school_admin", "tutor", "member"],
+      app_role: ["super_admin", "org_admin", "tutor", "member"],
       class_level: ["beginner", "intermediate", "advanced", "all_levels"],
       class_status: [
         "draft",
@@ -1422,8 +1250,9 @@ export const Constants = {
         "cancelled",
       ],
       membership_level: ["beginner", "intermediate", "advanced"],
+      organization_tier: ["starter", "standard", "premium"],
+      organization_type: ["school", "club", "academy", "other"],
       profile_visibility: ["members_only", "public"],
-      school_program_tier: ["starter", "standard", "premium"],
       subscription_status: [
         "none",
         "pending",

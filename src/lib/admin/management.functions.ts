@@ -19,17 +19,17 @@ export const listMembers = createServerFn({ method: "GET" })
   .handler(async ({ context }) => {
     const { supabase, userId } = context;
     const roles = await getRoles(supabase, userId);
-    if (!roles.includes("super_admin") && !roles.includes("school_admin")) {
+    if (!roles.includes("super_admin") && !roles.includes("org_admin")) {
       throw new Error("Forbidden");
     }
     let memberIds: string[] | null = null;
     if (!roles.includes("super_admin")) {
-      const { data: school } = await supabaseAdmin.from("schools").select("id").eq("owner_user_id", userId).maybeSingle();
-      if (!school) return [];
+      const { data: org } = await supabaseAdmin.from("organizations").select("id").eq("owner_user_id", userId).maybeSingle();
+      if (!org) return [];
       const { data: memberships, error: membershipError } = await supabase
-        .from("school_memberships")
+        .from("organization_memberships")
         .select("user_id")
-        .eq("school_id", school.id);
+        .eq("organization_id", org.id);
       if (membershipError) fail("listMembers.memberships", membershipError);
       memberIds = (memberships ?? []).map((membership) => membership.user_id);
       if (memberIds.length === 0) return [];
@@ -52,40 +52,40 @@ export const updateMemberState = createServerFn({ method: "POST" })
   .handler(async ({ context, data }) => {
     const { supabase, userId } = context;
     const roles = await getRoles(supabase, userId);
-    if (!roles.includes("super_admin") && !roles.includes("school_admin")) throw new Error("Forbidden");
-    if (roles.includes("school_admin") && !roles.includes("super_admin")) {
-      const { data: school } = await supabaseAdmin.from("schools").select("id").eq("owner_user_id", userId).maybeSingle();
-      const { data: membership } = school ? await supabase.from("school_memberships").select("id").eq("school_id", school.id).eq("user_id", data.user_id).maybeSingle() : { data: null };
-      if (!membership) throw new Error("You can only manage members in your school.");
+    if (!roles.includes("super_admin") && !roles.includes("org_admin")) throw new Error("Forbidden");
+    if (roles.includes("org_admin") && !roles.includes("super_admin")) {
+      const { data: org } = await supabaseAdmin.from("organizations").select("id").eq("owner_user_id", userId).maybeSingle();
+      const { data: membership } = org ? await supabase.from("organization_memberships").select("id").eq("organization_id", org.id).eq("user_id", data.user_id).maybeSingle() : { data: null };
+      if (!membership) throw new Error("You can only manage members in your organization.");
     }
     const { error } = await supabaseAdmin.from("profiles").update({ account_state: data.account_state }).eq("id", data.user_id);
     if (error) fail("updateMemberState", error);
     return { ok: true };
   });
 
-// SCHOOLS
-export const listSchools = createServerFn({ method: "GET" })
+// ORGANIZATIONS
+export const listOrganizations = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
     const { supabase, userId } = context;
     const roles = await getRoles(supabase, userId);
     if (!roles.includes("super_admin")) throw new Error("Forbidden");
     const { data, error } = await supabaseAdmin
-      .from("schools")
-      .select("id, name, contact_email, contact_person, student_count, subscription_status, program_tier, is_suspended, created_at")
+      .from("organizations")
+      .select("id, name, type, contact_email, contact_person, student_count, subscription_status, program_tier, is_suspended, created_at")
       .order("created_at", { ascending: false });
-    if (error) fail("listSchools", error);
+    if (error) fail("listOrganizations", error);
     return data ?? [];
   });
 
-export const toggleSchoolSuspension = createServerFn({ method: "POST" })
+export const toggleOrgSuspension = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((d) => z.object({ school_id: z.string().uuid(), suspended: z.boolean() }).parse(d))
+  .inputValidator((d) => z.object({ organization_id: z.string().uuid(), suspended: z.boolean() }).parse(d))
   .handler(async ({ context, data }) => {
     const roles = await getRoles(context.supabase, context.userId);
     if (!roles.includes("super_admin")) throw new Error("Forbidden");
-    const { error } = await supabaseAdmin.from("schools").update({ is_suspended: data.suspended, suspended_reason: data.suspended ? "Suspended by an administrator" : null }).eq("id", data.school_id);
-    if (error) fail("toggleSchoolSuspension", error);
+    const { error } = await supabaseAdmin.from("organizations").update({ is_suspended: data.suspended, suspended_reason: data.suspended ? "Suspended by an administrator" : null }).eq("id", data.organization_id);
+    if (error) fail("toggleOrgSuspension", error);
     return { ok: true };
   });
 
@@ -95,7 +95,7 @@ export const listTutors = createServerFn({ method: "GET" })
   .handler(async ({ context }) => {
     const { supabase, userId } = context;
     const roles = await getRoles(supabase, userId);
-    if (!roles.includes("super_admin") && !roles.includes("school_admin")) {
+    if (!roles.includes("super_admin") && !roles.includes("org_admin")) {
       throw new Error("Forbidden");
     }
     const { data: tutorRoleRows, error: tutorErr } = await supabaseAdmin
@@ -120,7 +120,7 @@ export const listClasses = createServerFn({ method: "GET" })
     const { supabase } = context;
     const { data, error } = await supabase
       .from("classes")
-      .select("id, title, description, tutor_id, school_id, level, status, starts_at, ends_at, capacity")
+      .select("id, title, description, tutor_id, organization_id, level, status, starts_at, ends_at, capacity")
       .order("starts_at", { ascending: true })
       .limit(200);
     if (error) fail("listClasses", error);
@@ -134,7 +134,7 @@ const createClassSchema = z.object({
   starts_at: z.string().min(1),
   ends_at: z.string().optional(),
   capacity: z.number().int().min(1).max(500).optional(),
-  school_id: z.string().uuid().optional(),
+  organization_id: z.string().uuid().optional(),
   tutor_id: z.string().uuid().optional(),
 });
 
@@ -144,7 +144,7 @@ export const createClass = createServerFn({ method: "POST" })
   .handler(async ({ context, data }) => {
     const { supabase, userId } = context;
     const roles = await getRoles(supabase, userId);
-    if (!roles.includes("super_admin") && !roles.includes("school_admin")) {
+    if (!roles.includes("super_admin") && !roles.includes("org_admin")) {
       throw new Error("Forbidden");
     }
     const { data: created, error } = await supabase
@@ -171,18 +171,18 @@ async function assertCanManageClass(supabase: any, userId: string, classId: stri
   if (roles.includes("super_admin")) return;
   const { data: cls } = await supabaseAdmin
     .from("classes")
-    .select("school_id, tutor_id, created_by")
+    .select("organization_id, tutor_id, created_by")
     .eq("id", classId)
     .maybeSingle();
   if (!cls) throw new Error("Class not found");
   if (cls.tutor_id === userId || cls.created_by === userId) return;
-  if (cls.school_id) {
-    const { data: school } = await supabaseAdmin
-      .from("schools")
+  if (cls.organization_id) {
+    const { data: org } = await supabaseAdmin
+      .from("organizations")
       .select("owner_user_id")
-      .eq("id", cls.school_id)
+      .eq("id", cls.organization_id)
       .maybeSingle();
-    if (school?.owner_user_id === userId) return;
+    if (org?.owner_user_id === userId) return;
   }
   throw new Error("Forbidden");
 }
@@ -263,7 +263,7 @@ export const listTournaments = createServerFn({ method: "GET" })
     const { supabase } = context;
     const { data, error } = await supabase
       .from("tournaments")
-      .select("id, name, description, format, status, starts_at, ends_at, max_participants, rounds, school_id")
+      .select("id, name, description, format, status, starts_at, ends_at, max_participants, rounds, organization_id")
       .order("starts_at", { ascending: true })
       .limit(200);
     if (error) fail("listTournaments", error);
@@ -278,7 +278,7 @@ const createTournamentSchema = z.object({
   ends_at: z.string().optional(),
   max_participants: z.number().int().min(2).max(1000).optional(),
   rounds: z.number().int().min(1).max(50).optional(),
-  school_id: z.string().uuid().optional(),
+  organization_id: z.string().uuid().optional(),
 });
 
 export const createTournament = createServerFn({ method: "POST" })
@@ -287,7 +287,7 @@ export const createTournament = createServerFn({ method: "POST" })
   .handler(async ({ context, data }) => {
     const { supabase, userId } = context;
     const roles = await getRoles(supabase, userId);
-    if (!roles.includes("super_admin") && !roles.includes("school_admin")) {
+    if (!roles.includes("super_admin") && !roles.includes("org_admin")) {
       throw new Error("Forbidden");
     }
     const { data: created, error } = await supabase
@@ -315,18 +315,18 @@ async function assertCanManageTournament(supabase: any, userId: string, tourname
   if (roles.includes("super_admin")) return;
   const { data: tournament } = await supabaseAdmin
     .from("tournaments")
-    .select("school_id, created_by")
+    .select("organization_id, created_by")
     .eq("id", tournamentId)
     .maybeSingle();
   if (!tournament) throw new Error("Tournament not found");
   if (tournament.created_by === userId) return;
-  if (tournament.school_id) {
-    const { data: school } = await supabaseAdmin
-      .from("schools")
+  if (tournament.organization_id) {
+    const { data: org } = await supabaseAdmin
+      .from("organizations")
       .select("owner_user_id")
-      .eq("id", tournament.school_id)
+      .eq("id", tournament.organization_id)
       .maybeSingle();
-    if (school?.owner_user_id === userId) return;
+    if (org?.owner_user_id === userId) return;
   }
   throw new Error("Forbidden");
 }

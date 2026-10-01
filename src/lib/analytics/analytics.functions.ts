@@ -19,7 +19,7 @@ export const getAnalytics = createServerFn({ method: "GET" })
   .handler(async ({ context }) => {
     const { supabase, userId } = context;
     const roles = await getRoles(supabase, userId);
-    if (!roles.includes("super_admin") && !roles.includes("school_admin")) {
+    if (!roles.includes("super_admin") && !roles.includes("org_admin")) {
       throw new Error("Forbidden");
     }
 

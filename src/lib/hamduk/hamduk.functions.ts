@@ -2,95 +2,83 @@ import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 
+type PlatformRating = {
+  time_control: string;
+  variant: string;
+  rating: number;
+  games_played: number;
+  wins: number;
+  losses: number;
+  draws: number;
+};
+
+type PlatformGame = {
+  id: string;
+  white_id: string;
+  black_id: string;
+  time_control: string;
+  variant: string;
+  result: string | null;
+  end_reason: string | null;
+  rated: boolean;
+  ply: number;
+  ended_at: string | null;
+  created_at: string;
+};
+
+// Ratings and games are read straight from the platform's own tables -- club.chess and
+// play.chess share one auth.users now, so there's no "link your account" step: a club
+// member's chess history is just their chess history. The generated Database type is scoped
+// to the "club" schema only, so these cross-schema reads (and their row shapes) are typed by
+// hand instead.
 export const getMyChessProfile = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    const { getLink } = await import("./sync.server");
     const { userId } = context;
+    const pub = (supabaseAdmin as any).schema("public");
 
-    const link = await getLink(userId);
-    if (!link) return { link: null, rating: null, games: [] as any[] };
-
-    const [{ data: rating }, { data: games }] = await Promise.all([
-      supabaseAdmin
-        .from("hamduk_ratings")
-        .select("hamduk_username, classical_rating, country, breakdown, synced_at")
+    const [{ data: ratings }, { data: games }]: [{ data: PlatformRating[] | null }, { data: PlatformGame[] | null }] = await Promise.all([
+      pub
+        .from("ratings")
+        .select("time_control, variant, rating, games_played, wins, losses, draws")
         .eq("user_id", userId)
-        .maybeSingle(),
-      supabaseAdmin
-        .from("hamduk_games")
-        .select("game_id, white, black, time_control, variant, result, end_reason, rated, moves, white_rating_delta, black_rating_delta, played_at")
-        .eq("user_id", userId)
-        .order("played_at", { ascending: false })
+        .order("rating", { ascending: false }),
+      pub
+        .from("games")
+        .select(
+          "id, white_id, black_id, time_control, variant, result, end_reason, rated, ply, white_rating_delta, black_rating_delta, ended_at, created_at",
+        )
+        .or(`white_id.eq.${userId},black_id.eq.${userId}`)
+        .eq("status", "completed")
+        .order("ended_at", { ascending: false })
         .limit(25),
     ]);
 
-    return { link, rating: rating ?? null, games: games ?? [] };
-  });
-
-export const linkChessAccount = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
-  .inputValidator((d) =>
-    z
-      .object({
-        username: z
-          .string()
-          .trim()
-          .min(2)
-          .max(40)
-          .regex(/^[A-Za-z0-9_.-]+$/, "Usernames can only contain letters, numbers, dots, dashes and underscores."),
-      })
-      .parse(d),
-  )
-  .handler(async ({ context, data }) => {
-    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    const { fail, syncMember } = await import("./sync.server");
-    const { rateLimit } = await import("@/lib/cache/redis.server");
-    const { userId } = context;
-
-    await rateLimit(userId, { name: "hamduk-link", limit: 10, windowSeconds: 60 });
-
-    const { error } = await supabaseAdmin.from("hamduk_accounts").upsert(
-      { user_id: userId, hamduk_username: data.username, link_status: "pending", sync_error: null },
-      { onConflict: "user_id" },
+    const opponentIds = Array.from(
+      new Set((games ?? []).flatMap((g: any) => [g.white_id, g.black_id])),
     );
-    if (error) fail("link", error);
-
-    try {
-      const result = await syncMember(userId, data.username);
-      return { ok: true, ...result };
-    } catch (e) {
-      fail("link.sync", e);
+    let names: Record<string, string> = {};
+    if (opponentIds.length) {
+      const { data: profs } = await pub.from("profiles").select("id, username").in("id", opponentIds);
+      for (const p of (profs ?? []) as any[]) names[p.id] = p.username;
     }
-  });
 
-export const unlinkChessAccount = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
-  .handler(async ({ context }) => {
-    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    await supabaseAdmin.from("hamduk_games").delete().eq("user_id", context.userId);
-    await supabaseAdmin.from("hamduk_ratings").delete().eq("user_id", context.userId);
-    await supabaseAdmin.from("hamduk_accounts").delete().eq("user_id", context.userId);
-    return { ok: true };
-  });
-
-export const syncMyChessData = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
-  .handler(async ({ context }) => {
-    const { fail, getLink, syncMember } = await import("./sync.server");
-    const { rateLimit } = await import("@/lib/cache/redis.server");
-    const { userId } = context;
-
-    await rateLimit(userId, { name: "hamduk-sync", limit: 6, windowSeconds: 60 });
-
-    const link = await getLink(userId);
-    if (!link) throw new Error("Link your Hamduk Chess username first.");
-    try {
-      return { ok: true, ...(await syncMember(userId, link.hamduk_username)) };
-    } catch (e) {
-      fail("sync", e);
-    }
+    return {
+      ratings: ratings ?? [],
+      games: (games ?? []).map((g: any) => ({
+        game_id: g.id,
+        white: names[g.white_id] ?? "—",
+        black: names[g.black_id] ?? "—",
+        time_control: g.time_control,
+        variant: g.variant,
+        result: g.result,
+        end_reason: g.end_reason,
+        rated: g.rated,
+        moves: g.ply,
+        played_at: g.ended_at ?? g.created_at,
+      })),
+    };
   });
 
 /* ---------- embeds (board / puzzles / leaderboard) ---------- */
@@ -99,7 +87,7 @@ export const listChessEmbeds = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
     const { data, error } = await context.supabase
-      .from("hamduk_embeds")
+      .from("embeds")
       .select("id, kind, label, embed_url, config, expires_at, created_at")
       .order("created_at", { ascending: false });
     if (error) {
@@ -133,7 +121,7 @@ export const createChessEmbed = createServerFn({ method: "POST" })
     try {
       const token = await createEmbedToken(data.kind, data.config, data.ttl_hours);
       const { data: row, error } = await supabaseAdmin
-        .from("hamduk_embeds")
+        .from("embeds")
         .insert({
           kind: data.kind,
           label: data.label,
@@ -164,7 +152,7 @@ export const deleteChessEmbed = createServerFn({ method: "POST" })
     if (!(await isSuperAdmin(context.supabase, context.userId))) throw new Error("Forbidden");
 
     const { data: row } = await supabaseAdmin
-      .from("hamduk_embeds")
+      .from("embeds")
       .select("token")
       .eq("id", data.id)
       .maybeSingle();
@@ -175,133 +163,25 @@ export const deleteChessEmbed = createServerFn({ method: "POST" })
         console.warn("[hamduk.revokeEmbed]", e);
       }
     }
-    await supabaseAdmin.from("hamduk_embeds").delete().eq("id", data.id);
+    await supabaseAdmin.from("embeds").delete().eq("id", data.id);
     return { ok: true };
   });
 
-/* ---------- admin: integration status, member sync, webhooks ---------- */
+/* ---------- admin: integration status ---------- */
 
+// "Configured" just means the API key/base URL needed for embeds and the tournament/class
+// sync calls are set -- there's no more account-linking status to report since ratings/games
+// are read directly (see getMyChessProfile above), and webhook delivery now verifies against
+// a single static secret instead of a DB-registered list (see /api/public/hamduk-webhook).
 export const getIntegrationStatus = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
-    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const { isSuperAdmin } = await import("./sync.server");
     if (!(await isSuperAdmin(context.supabase, context.userId))) throw new Error("Forbidden");
 
     const configured =
       Boolean(process.env["HAMDUK_CHESS_API_KEY"]) && Boolean(process.env["HAMDUK_CHESS_API_BASE_URL"]);
+    const webhookConfigured = Boolean(process.env["HAMDUK_CHESS_WEBHOOK_SECRET"]);
 
-    const [{ data: accounts }, { data: webhooks }, { data: events }] = await Promise.all([
-      supabaseAdmin
-        .from("hamduk_accounts")
-        .select("user_id, hamduk_username, link_status, last_synced_at, sync_error")
-        .order("created_at", { ascending: false })
-        .limit(200),
-      supabaseAdmin
-        .from("hamduk_webhooks")
-        .select("id, remote_id, url, events, disabled, created_at")
-        .order("created_at", { ascending: false }),
-      supabaseAdmin
-        .from("hamduk_webhook_events")
-        .select("id, event, signature_valid, received_at, payload")
-        .order("received_at", { ascending: false })
-        .limit(25),
-    ]);
-
-    const ids = (accounts ?? []).map((a: any) => a.user_id);
-    let names: Record<string, string> = {};
-    if (ids.length) {
-      const { data: profs } = await supabaseAdmin.from("profiles").select("id, full_name").in("id", ids);
-      for (const p of profs ?? []) names[p.id] = p.full_name;
-    }
-
-    return {
-      configured,
-      accounts: (accounts ?? []).map((a: any) => ({ ...a, full_name: names[a.user_id] ?? "Unknown" })),
-      webhooks: webhooks ?? [],
-      events: events ?? [],
-    };
-  });
-
-export const syncAllChessAccounts = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
-  .handler(async ({ context }) => {
-    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    const { isSuperAdmin, syncMember } = await import("./sync.server");
-    const { invalidate } = await import("@/lib/cache/redis.server");
-    if (!(await isSuperAdmin(context.supabase, context.userId))) throw new Error("Forbidden");
-
-    const { data: accounts } = await supabaseAdmin
-      .from("hamduk_accounts")
-      .select("user_id, hamduk_username")
-      .limit(100);
-
-    let synced = 0;
-    const failed: string[] = [];
-    for (const a of accounts ?? []) {
-      try {
-        await syncMember(a.user_id, a.hamduk_username);
-        synced += 1;
-      } catch {
-        failed.push(a.hamduk_username);
-      }
-    }
-    await invalidate("leaderboard:top100");
-    return { synced, failed };
-  });
-
-export const registerChessWebhook = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
-  .inputValidator((d) =>
-    z
-      .object({
-        url: z.string().url().max(500),
-        events: z.array(z.string().min(3).max(60)).min(1).max(20),
-      })
-      .parse(d),
-  )
-  .handler(async ({ context, data }) => {
-    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    const { fail, isSuperAdmin } = await import("./sync.server");
-    const { registerRemoteWebhook } = await import("./hamduk.server");
-    if (!(await isSuperAdmin(context.supabase, context.userId))) throw new Error("Forbidden");
-
-    try {
-      const res = await registerRemoteWebhook(data.url, data.events);
-      const { error } = await supabaseAdmin.from("hamduk_webhooks").insert({
-        remote_id: res.webhook.id,
-        url: res.webhook.url,
-        events: res.webhook.events,
-        signing_secret: res.signing_secret,
-      });
-      if (error) fail("registerWebhook.save", error);
-      return { ok: true };
-    } catch (e) {
-      fail("registerWebhook", e);
-    }
-  });
-
-export const deleteChessWebhook = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
-  .inputValidator((d) => z.object({ id: z.string().uuid() }).parse(d))
-  .handler(async ({ context, data }) => {
-    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    const { isSuperAdmin } = await import("./sync.server");
-    const { deleteRemoteWebhook } = await import("./hamduk.server");
-    if (!(await isSuperAdmin(context.supabase, context.userId))) throw new Error("Forbidden");
-
-    const { data: row } = await supabaseAdmin
-      .from("hamduk_webhooks")
-      .select("remote_id")
-      .eq("id", data.id)
-      .maybeSingle();
-    if (row?.remote_id) {
-      try {
-        await deleteRemoteWebhook(row.remote_id);
-      } catch (e) {
-        console.warn("[hamduk.deleteWebhook]", e);
-      }
-    }
-    await supabaseAdmin.from("hamduk_webhooks").delete().eq("id", data.id);
-    return { ok: true };
+    return { configured, webhookConfigured };
   });

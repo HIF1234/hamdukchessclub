@@ -61,7 +61,7 @@ function MembersPage() {
                   <td className="px-4 py-3 capitalize">{m.membership_level ?? "—"}</td>
                   <td className="px-4 py-3">{m.chess_rating ?? "—"}</td>
                    <td className="px-4 py-3 text-muted-foreground">{new Date(m.created_at).toLocaleDateString()}</td>
-                   <td className="px-4 py-3">{m.account_state === "suspended" ? <Button size="sm" variant="outline" disabled={stateMut.isPending} onClick={() => stateMut.mutate({ user_id: m.id, account_state: "active" })}>Reactivate</Button> : <Button size="sm" variant="outline" disabled={stateMut.isPending || (roles.includes("school_admin") && m.account_state !== "active")} onClick={() => stateMut.mutate({ user_id: m.id, account_state: "suspended" })}>Suspend</Button>}</td>
+                   <td className="px-4 py-3">{m.account_state === "suspended" ? <Button size="sm" variant="outline" disabled={stateMut.isPending} onClick={() => stateMut.mutate({ user_id: m.id, account_state: "active" })}>Reactivate</Button> : <Button size="sm" variant="outline" disabled={stateMut.isPending || (roles.includes("org_admin") && m.account_state !== "active")} onClick={() => stateMut.mutate({ user_id: m.id, account_state: "suspended" })}>Suspend</Button>}</td>
                 </tr>
               ))}
               {data?.length === 0 && (

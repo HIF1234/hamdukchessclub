@@ -168,7 +168,7 @@ export const listMessageContacts = createServerFn({ method: "GET" })
     const { data: roleRows } = await supabaseAdmin
       .from("user_roles").select("role").eq("user_id", userId);
     const roles = (roleRows ?? []).map((r) => r.role as string);
-    const isStaff = roles.some((r) => ["super_admin", "school_admin", "tutor"].includes(r));
+    const isStaff = roles.some((r) => ["super_admin", "org_admin", "tutor"].includes(r));
 
     let query = supabaseAdmin
       .from("profiles")
@@ -191,7 +191,7 @@ export const listMessageContacts = createServerFn({ method: "GET" })
       .from("user_roles")
       .select("user_id")
       .in("user_id", ids)
-      .in("role", ["super_admin", "school_admin", "tutor"]);
+      .in("role", ["super_admin", "org_admin", "tutor"]);
     const staffIds = new Set((staffRoles ?? []).map((r) => r.user_id as string));
     return (profs ?? []).filter((p) => staffIds.has(p.id as string));
   });

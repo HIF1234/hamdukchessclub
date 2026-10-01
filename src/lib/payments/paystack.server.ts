@@ -113,7 +113,7 @@ export async function applySuccessfulPayment(reference: string) {
       })
       .eq("id", payment.user_id);
   } else {
-    // school plan — activate user too, school record managed elsewhere
+    // organization plan — activate user too, organization record managed elsewhere
     await supabaseAdmin
       .from("profiles")
       .update({ account_state: "active", membership_expires_at: expiresAt.toISOString() })

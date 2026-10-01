@@ -14,8 +14,8 @@ export type CalendarEvent = {
 };
 
 // Returns the events the caller should see on their personal calendar:
-// classes they're enrolled in (or tutor for, or own the school of) and
-// tournaments they're registered for (or own the school of). Admins see all.
+// classes they're enrolled in (or tutor for, or own the organization of) and
+// tournaments they're registered for (or own the organization of). Admins see all.
 export const getMyCalendar = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
@@ -31,21 +31,21 @@ export const getMyCalendar = createServerFn({ method: "GET" })
       .from("class_enrollments").select("class_id").eq("user_id", userId);
     const enrolledClassIds = (enroll ?? []).map((e) => e.class_id as string);
 
-    // Schools the user owns
-    const { data: ownedSchools } = await supabaseAdmin
-      .from("schools").select("id").eq("owner_user_id", userId);
-    const ownedSchoolIds = (ownedSchools ?? []).map((s) => s.id as string);
+    // Organizations the user owns
+    const { data: ownedOrgs } = await supabaseAdmin
+      .from("organizations").select("id").eq("owner_user_id", userId);
+    const ownedOrgIds = (ownedOrgs ?? []).map((s) => s.id as string);
 
     // Classes: super admin all; otherwise tutor's or owner's or enrolled
     let classesQuery = supabaseAdmin
       .from("classes")
-      .select("id, title, description, starts_at, ends_at, meeting_url, status, school_id, tutor_id")
+      .select("id, title, description, starts_at, ends_at, meeting_url, status, organization_id, tutor_id")
       .neq("status", "cancelled")
       .order("starts_at", { ascending: true });
     if (!isSuper) {
       const orParts: string[] = [`tutor_id.eq.${userId}`];
       if (enrolledClassIds.length) orParts.push(`id.in.(${enrolledClassIds.join(",")})`);
-      if (ownedSchoolIds.length) orParts.push(`school_id.in.(${ownedSchoolIds.join(",")})`);
+      if (ownedOrgIds.length) orParts.push(`organization_id.in.(${ownedOrgIds.join(",")})`);
       classesQuery = classesQuery.or(orParts.join(","));
     }
     const { data: classes } = await classesQuery;
@@ -57,13 +57,13 @@ export const getMyCalendar = createServerFn({ method: "GET" })
 
     let tournamentsQuery = supabaseAdmin
       .from("tournaments")
-      .select("id, name, description, starts_at, ends_at, status, school_id")
+      .select("id, name, description, starts_at, ends_at, status, organization_id")
       .neq("status", "cancelled")
       .order("starts_at", { ascending: true });
     if (!isSuper) {
       const orParts: string[] = [];
       if (regIds.length) orParts.push(`id.in.(${regIds.join(",")})`);
-      if (ownedSchoolIds.length) orParts.push(`school_id.in.(${ownedSchoolIds.join(",")})`);
+      if (ownedOrgIds.length) orParts.push(`organization_id.in.(${ownedOrgIds.join(",")})`);
       if (orParts.length === 0) {
         // Nothing the user can see — short-circuit
         return {

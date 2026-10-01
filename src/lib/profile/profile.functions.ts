@@ -53,14 +53,14 @@ export const exportMyData = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
     const { userId } = context;
-    const [profile, roles, payments, enrollments, participants, notifications, schools] = await Promise.all([
+    const [profile, roles, payments, enrollments, participants, notifications, orgs] = await Promise.all([
       supabaseAdmin.from("profiles").select("*").eq("id", userId).maybeSingle(),
       supabaseAdmin.from("user_roles").select("role, created_at").eq("user_id", userId),
       supabaseAdmin.from("payments").select("*").eq("user_id", userId),
       supabaseAdmin.from("class_enrollments").select("*").eq("user_id", userId),
       supabaseAdmin.from("tournament_participants").select("*").eq("user_id", userId),
       supabaseAdmin.from("notifications").select("*").eq("user_id", userId),
-      supabaseAdmin.from("schools").select("*").eq("owner_user_id", userId),
+      supabaseAdmin.from("organizations").select("*").eq("owner_user_id", userId),
     ]);
     return {
       exported_at: new Date().toISOString(),
@@ -70,7 +70,7 @@ export const exportMyData = createServerFn({ method: "GET" })
       class_enrollments: enrollments.data ?? [],
       tournament_participants: participants.data ?? [],
       notifications: notifications.data ?? [],
-      schools_owned: schools.data ?? [],
+      organizations_owned: orgs.data ?? [],
     };
   });
 

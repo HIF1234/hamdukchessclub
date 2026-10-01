@@ -42,7 +42,7 @@ export const Route = createFileRoute("/_authenticated/announcements")({
 function AnnouncementsPage() {
   const { roles, user } = useAuth();
   const userId = user?.id;
-  const canPost = roles.includes("super_admin") || roles.includes("school_admin");
+  const canPost = roles.includes("super_admin") || roles.includes("org_admin");
   const isSuper = roles.includes("super_admin");
   const fetchList = useServerFn(listAnnouncements);
   const del = useServerFn(deleteAnnouncement);
@@ -110,7 +110,7 @@ function AnnouncementsPage() {
   );
 }
 
-function EditAnnouncementDialog({ announcement, isSuper }: { announcement: { id: string; title: string; body: string; audience: "all" | "school" | "members" | "tutors" | "school_admins"; school_id: string | null; pinned: boolean; expires_at: string | null }; isSuper: boolean }) {
+function EditAnnouncementDialog({ announcement, isSuper }: { announcement: { id: string; title: string; body: string; audience: "all" | "organization" | "members" | "tutors" | "org_admins"; organization_id: string | null; pinned: boolean; expires_at: string | null }; isSuper: boolean }) {
   const [open, setOpen] = useState(false);
   const [title, setTitle] = useState(announcement.title);
   const [body, setBody] = useState(announcement.body);
@@ -119,11 +119,11 @@ function EditAnnouncementDialog({ announcement, isSuper }: { announcement: { id:
   const update = useServerFn(updateAnnouncement);
   const qc = useQueryClient();
   const mut = useMutation({
-    mutationFn: () => update({ data: { id: announcement.id, title, body, audience, school_id: announcement.school_id, pinned } }),
+    mutationFn: () => update({ data: { id: announcement.id, title, body, audience, organization_id: announcement.organization_id, pinned } }),
     onSuccess: () => { toast.success("Announcement updated"); setOpen(false); void qc.invalidateQueries({ queryKey: ["announcements"] }); },
     onError: (e: Error) => toast.error(e.message),
   });
-  return <Dialog open={open} onOpenChange={setOpen}><DialogTrigger asChild><Button size="sm" variant="ghost">Edit</Button></DialogTrigger><DialogContent><DialogHeader><DialogTitle>Edit announcement</DialogTitle></DialogHeader><div className="space-y-4"><div><Label htmlFor={`edit-title-${announcement.id}`}>Title</Label><Input id={`edit-title-${announcement.id}`} value={title} onChange={(e) => setTitle(e.target.value)} /></div><div><Label htmlFor={`edit-body-${announcement.id}`}>Message</Label><Textarea id={`edit-body-${announcement.id}`} rows={5} value={body} onChange={(e) => setBody(e.target.value)} /></div>{isSuper && <div><Label>Audience</Label><Select value={audience} onValueChange={(v) => setAudience(v as typeof audience)}><SelectTrigger><SelectValue /></SelectTrigger><SelectContent><SelectItem value="all">Everyone</SelectItem><SelectItem value="members">Members</SelectItem><SelectItem value="tutors">Tutors</SelectItem><SelectItem value="school_admins">School admins</SelectItem></SelectContent></Select></div>}<div className="flex items-center gap-2"><Checkbox id={`edit-pinned-${announcement.id}`} checked={pinned} onCheckedChange={(v) => setPinned(Boolean(v))} /><Label htmlFor={`edit-pinned-${announcement.id}`}>Pin to top</Label></div><Button className="w-full" disabled={!title || !body || mut.isPending} onClick={() => mut.mutate()}>{mut.isPending ? "Saving…" : "Save changes"}</Button></div></DialogContent></Dialog>;
+  return <Dialog open={open} onOpenChange={setOpen}><DialogTrigger asChild><Button size="sm" variant="ghost">Edit</Button></DialogTrigger><DialogContent><DialogHeader><DialogTitle>Edit announcement</DialogTitle></DialogHeader><div className="space-y-4"><div><Label htmlFor={`edit-title-${announcement.id}`}>Title</Label><Input id={`edit-title-${announcement.id}`} value={title} onChange={(e) => setTitle(e.target.value)} /></div><div><Label htmlFor={`edit-body-${announcement.id}`}>Message</Label><Textarea id={`edit-body-${announcement.id}`} rows={5} value={body} onChange={(e) => setBody(e.target.value)} /></div>{isSuper && <div><Label>Audience</Label><Select value={audience} onValueChange={(v) => setAudience(v as typeof audience)}><SelectTrigger><SelectValue /></SelectTrigger><SelectContent><SelectItem value="all">Everyone</SelectItem><SelectItem value="members">Members</SelectItem><SelectItem value="tutors">Tutors</SelectItem><SelectItem value="org_admins">Org admins</SelectItem></SelectContent></Select></div>}<div className="flex items-center gap-2"><Checkbox id={`edit-pinned-${announcement.id}`} checked={pinned} onCheckedChange={(v) => setPinned(Boolean(v))} /><Label htmlFor={`edit-pinned-${announcement.id}`}>Pin to top</Label></div><Button className="w-full" disabled={!title || !body || mut.isPending} onClick={() => mut.mutate()}>{mut.isPending ? "Saving…" : "Save changes"}</Button></div></DialogContent></Dialog>;
 }
 
 function NewAnnouncementDialog({ isSuper }: { isSuper: boolean }) {
@@ -131,8 +131,8 @@ function NewAnnouncementDialog({ isSuper }: { isSuper: boolean }) {
   const [title, setTitle] = useState("");
   const [body, setBody] = useState("");
   const [audience, setAudience] = useState<
-    "all" | "school" | "members" | "tutors" | "school_admins"
-  >(isSuper ? "all" : "school");
+    "all" | "organization" | "members" | "tutors" | "org_admins"
+  >(isSuper ? "all" : "organization");
   const [pinned, setPinned] = useState(false);
   const create = useServerFn(createAnnouncement);
   const qc = useQueryClient();
@@ -194,7 +194,7 @@ function NewAnnouncementDialog({ isSuper }: { isSuper: boolean }) {
                   <SelectItem value="all">Everyone</SelectItem>
                   <SelectItem value="members">Members</SelectItem>
                   <SelectItem value="tutors">Tutors</SelectItem>
-                  <SelectItem value="school_admins">School admins</SelectItem>
+                  <SelectItem value="org_admins">Org admins</SelectItem>
                 </SelectContent>
               </Select>
             </div>

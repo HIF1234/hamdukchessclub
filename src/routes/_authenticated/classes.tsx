@@ -23,7 +23,7 @@ export const Route = createFileRoute("/_authenticated/classes")({
 
 function ClassesPage() {
   const { roles } = useAuth();
-  const canCreate = roles.includes("super_admin") || roles.includes("school_admin");
+  const canCreate = roles.includes("super_admin") || roles.includes("org_admin");
   const fetchClasses = useServerFn(listClasses);
   const enroll = useServerFn(enrollInClass);
   const qc = useQueryClient();

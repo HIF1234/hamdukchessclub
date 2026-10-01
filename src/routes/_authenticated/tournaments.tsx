@@ -23,7 +23,7 @@ export const Route = createFileRoute("/_authenticated/tournaments")({
 
 function TournamentsPage() {
   const { roles } = useAuth();
-  const canCreate = roles.includes("super_admin") || roles.includes("school_admin");
+  const canCreate = roles.includes("super_admin") || roles.includes("org_admin");
   const fetchT = useServerFn(listTournaments);
   const register = useServerFn(registerForTournament);
   const qc = useQueryClient();

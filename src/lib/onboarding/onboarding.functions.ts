@@ -55,7 +55,7 @@ export const saveOnboarding = createServerFn({ method: "POST" })
     return { ok: true };
   });
 
-const schoolSchema = z.object({
+const organizationSchema = z.object({
   name: z.string().min(1).max(200),
   contact_person: z.string().max(120).optional().nullable(),
   contact_email: z.string().email().optional().nullable(),
@@ -65,21 +65,21 @@ const schoolSchema = z.object({
   program_tier: z.enum(["starter", "standard", "premium"]).optional().nullable(),
 });
 
-export const upsertSchool = createServerFn({ method: "POST" })
+export const upsertOrganization = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((input) => schoolSchema.parse(input))
+  .inputValidator((input) => organizationSchema.parse(input))
   .handler(async ({ data, context }) => {
     const { userId } = context;
 
     const { data: existing } = await supabaseAdmin
-      .from("schools")
+      .from("organizations")
       .select("id")
       .eq("owner_user_id", userId)
       .maybeSingle();
 
     if (existing) {
       const { error } = await supabaseAdmin
-        .from("schools")
+        .from("organizations")
         .update({
           name: data.name,
           contact_person: data.contact_person ?? null,
@@ -91,14 +91,14 @@ export const upsertSchool = createServerFn({ method: "POST" })
         })
         .eq("id", existing.id);
       if (error) {
-        console.error("[onboarding.school.update]", error);
-        throw new Error("Could not update school. Please try again.");
+        console.error("[onboarding.organization.update]", error);
+        throw new Error("Could not update organization. Please try again.");
       }
-      return { schoolId: existing.id };
+      return { organizationId: existing.id };
     }
 
     const { data: created, error } = await supabaseAdmin
-      .from("schools")
+      .from("organizations")
       .insert({
         name: data.name,
         owner_user_id: userId,
@@ -112,8 +112,8 @@ export const upsertSchool = createServerFn({ method: "POST" })
       .select("id")
       .single();
     if (error) {
-      console.error("[onboarding.school.create]", error);
-      throw new Error("Could not create school. Please try again.");
+      console.error("[onboarding.organization.create]", error);
+      throw new Error("Could not create organization. Please try again.");
     }
-    return { schoolId: created.id };
+    return { organizationId: created.id };
   });

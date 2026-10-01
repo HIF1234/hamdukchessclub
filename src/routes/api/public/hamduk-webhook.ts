@@ -11,7 +11,10 @@ function verify(body: string, header: string | null, secret: string | undefined)
   return a.length === b.length && timingSafeEqual(a, b);
 }
 
-
+// Verifies against a single static secret (HAMDUK_CHESS_WEBHOOK_SECRET) instead of a
+// DB-registered list -- the dynamic multi-webhook registration this used to support
+// (hamduk_webhooks) was retired along with the rest of the account-linking bridge; one
+// static secret, configured once on both sides, is enough for the two events this handles.
 export const Route = createFileRoute("/api/public/hamduk-webhook")({
   server: {
     handlers: {
@@ -19,21 +22,9 @@ export const Route = createFileRoute("/api/public/hamduk-webhook")({
         const body = await request.text();
         const signature =
           request.headers.get("x-hamduk-signature") ?? request.headers.get("x-signature");
-        const globalSecret = process.env["HAMDUK_CHESS_WEBHOOK_SECRET"];
+        const secret = process.env["HAMDUK_CHESS_WEBHOOK_SECRET"];
 
-        const { data: hooks } = await supabaseAdmin
-          .from("hamduk_webhooks")
-          .select("signing_secret")
-          .eq("disabled", false);
-
-        const secrets = [
-          globalSecret,
-          ...(hooks ?? []).map((h: any) => h.signing_secret),
-        ].filter((s): s is string => Boolean(s));
-
-        const valid = secrets.some((secret) => verify(body, signature, secret));
-        if (!valid) return new Response("Invalid signature", { status: 401 });
-
+        if (!verify(body, signature, secret)) return new Response("Invalid signature", { status: 401 });
 
         let payload: { event?: string; data?: Record<string, any> };
         try {
@@ -43,9 +34,6 @@ export const Route = createFileRoute("/api/public/hamduk-webhook")({
         }
 
         const event = payload.event ?? "unknown";
-        await supabaseAdmin
-          .from("hamduk_webhook_events")
-          .insert({ event, payload: payload as any, signature_valid: true });
 
         try {
           if (event === "tournament.round_complete") {

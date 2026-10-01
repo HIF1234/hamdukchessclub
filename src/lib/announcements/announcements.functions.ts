@@ -19,7 +19,7 @@ export const listAnnouncements = createServerFn({ method: "GET" })
     const { supabase } = context;
     const { data, error } = await supabase
       .from("announcements")
-      .select("id, title, body, audience, school_id, pinned, published_at, expires_at, created_by, created_at")
+      .select("id, title, body, audience, organization_id, pinned, published_at, expires_at, created_by, created_at")
       .order("pinned", { ascending: false })
       .order("published_at", { ascending: false })
       .limit(100);
@@ -30,8 +30,8 @@ export const listAnnouncements = createServerFn({ method: "GET" })
 const createSchema = z.object({
   title: z.string().min(2).max(160),
   body: z.string().min(2).max(4000),
-  audience: z.enum(["all", "school", "members", "tutors", "school_admins"]),
-  school_id: z.string().uuid().optional().nullable(),
+  audience: z.enum(["all", "organization", "members", "tutors", "org_admins"]),
+  organization_id: z.string().uuid().optional().nullable(),
   pinned: z.boolean().optional(),
   expires_at: z.string().optional().nullable(),
 });
@@ -43,26 +43,26 @@ export const createAnnouncement = createServerFn({ method: "POST" })
     const { supabase, userId } = context;
     const roles = await getRoles(supabase, userId);
     const isSuper = roles.includes("super_admin");
-    let schoolId = data.school_id ?? null;
+    let orgId = data.organization_id ?? null;
     if (!isSuper) {
-      if (data.audience !== "school") {
-        throw new Error("Only super admins can post non-school announcements");
+      if (data.audience !== "organization") {
+        throw new Error("Only super admins can post non-organization announcements");
       }
-      const { data: school } = await supabaseAdmin
-        .from("schools")
+      const { data: org } = await supabaseAdmin
+        .from("organizations")
         .select("owner_user_id")
-        .eq("id", data.school_id)
+        .eq("id", data.organization_id)
         .maybeSingle();
-      if (data.school_id && school?.owner_user_id === userId) {
-        schoolId = data.school_id;
+      if (data.organization_id && org?.owner_user_id === userId) {
+        orgId = data.organization_id;
       } else {
-        const { data: ownedSchool } = await supabaseAdmin
-          .from("schools")
+        const { data: ownedOrg } = await supabaseAdmin
+          .from("organizations")
           .select("id")
           .eq("owner_user_id", userId)
           .maybeSingle();
-        if (!ownedSchool) throw new Error("No school is assigned to this account.");
-        schoolId = ownedSchool.id;
+        if (!ownedOrg) throw new Error("No organization is assigned to this account.");
+        orgId = ownedOrg.id;
       }
     }
     const { data: created, error } = await supabaseAdmin
@@ -71,7 +71,7 @@ export const createAnnouncement = createServerFn({ method: "POST" })
         title: data.title,
         body: data.body,
         audience: data.audience,
-        school_id: schoolId,
+        organization_id: orgId,
         pinned: data.pinned ?? false,
         expires_at: data.expires_at || null,
         created_by: userId,
@@ -92,7 +92,7 @@ export const updateAnnouncement = createServerFn({ method: "POST" })
     const roles = await getRoles(supabase, userId);
     const { data: existing, error: readError } = await supabaseAdmin
       .from("announcements")
-      .select("created_by, school_id")
+      .select("created_by, organization_id")
       .eq("id", data.id)
       .maybeSingle();
     if (readError) fail("update.read", readError);
@@ -108,7 +108,7 @@ export const updateAnnouncement = createServerFn({ method: "POST" })
         title: data.title,
         body: data.body,
         audience: data.audience,
-        school_id: data.school_id ?? existing.school_id,
+        organization_id: data.organization_id ?? existing.organization_id,
         pinned: data.pinned ?? false,
         expires_at: data.expires_at || null,
       })

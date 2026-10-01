@@ -20,6 +20,10 @@ function createSupabaseClient() {
   }
 
   return createClient<Database>(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, {
+    // Club tables live in the "club" schema of the shared Hamduk Chess project (same
+    // auth.users as play.chess.hamduk.com.ng). Use .schema('public') per-query where this
+    // app needs to read the platform's own tables (e.g. ratings, games).
+    db: { schema: 'club' },
     auth: {
       storage: brokeredPreviewStorage(),
       persistSession: true,

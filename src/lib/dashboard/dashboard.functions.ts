@@ -4,11 +4,11 @@ import { supabaseAdmin } from "@/integrations/supabase/client.server";
 
 export type RoleStats = {
   members?: { total: number; active: number; pendingPayment: number; expired: number };
-  schools?: { total: number; activeSubs: number };
+  organizations?: { total: number; activeSubs: number };
   payments?: { totalKobo: number; last30Kobo: number; successCount: number };
-  mySchool?: { id: string; name: string; studentCount: number | null } | null;
-  mySchoolMembers?: number;
-  mySchoolClasses?: number;
+  myOrg?: { id: string; name: string; studentCount: number | null } | null;
+  myOrgMembers?: number;
+  myOrgClasses?: number;
   tutor?: { classesThisWeek: number; students: number };
 };
 
@@ -23,13 +23,13 @@ export const getDashboardStats = createServerFn({ method: "GET" })
     const out: RoleStats = {};
 
     if (roles.includes("super_admin")) {
-      const [profilesRes, schoolsRes, paymentsRes] = await Promise.all([
+      const [profilesRes, orgsRes, paymentsRes] = await Promise.all([
         supabaseAdmin.from("profiles").select("account_state", { count: "exact" }),
-        supabaseAdmin.from("schools").select("subscription_status", { count: "exact" }),
+        supabaseAdmin.from("organizations").select("subscription_status", { count: "exact" }),
         supabaseAdmin.from("payments").select("amount_kobo, status, paid_at").eq("status", "success"),
       ]);
       const profiles = profilesRes.data ?? [];
-      const schools = schoolsRes.data ?? [];
+      const orgs = orgsRes.data ?? [];
       const payments = paymentsRes.data ?? [];
       const cutoff = Date.now() - 30 * 24 * 60 * 60 * 1000;
       out.members = {
@@ -38,9 +38,9 @@ export const getDashboardStats = createServerFn({ method: "GET" })
         pendingPayment: profiles.filter((p) => p.account_state === "pending_payment").length,
         expired: profiles.filter((p) => p.account_state === "expired").length,
       };
-      out.schools = {
-        total: schools.length,
-        activeSubs: schools.filter((s) => s.subscription_status === "active").length,
+      out.organizations = {
+        total: orgs.length,
+        activeSubs: orgs.filter((s) => s.subscription_status === "active").length,
       };
       out.payments = {
         totalKobo: payments.reduce((s, p) => s + (p.amount_kobo ?? 0), 0),
@@ -51,23 +51,23 @@ export const getDashboardStats = createServerFn({ method: "GET" })
       };
     }
 
-    if (roles.includes("school_admin")) {
-      const { data: school } = await supabase
-        .from("schools")
+    if (roles.includes("org_admin")) {
+      const { data: org } = await supabase
+        .from("organizations")
         .select("id, name, student_count")
         .eq("owner_user_id", userId)
         .maybeSingle();
-      out.mySchool = school
-        ? { id: school.id, name: school.name, studentCount: school.student_count }
+      out.myOrg = org
+        ? { id: org.id, name: org.name, studentCount: org.student_count }
         : null;
-      if (school) {
+      if (org) {
         const { count } = await supabase
-          .from("school_memberships")
+          .from("organization_memberships")
           .select("id", { count: "exact", head: true })
-          .eq("school_id", school.id);
-        out.mySchoolMembers = count ?? 0;
-        const { count: classCount } = await supabase.from("classes").select("id", { count: "exact", head: true }).eq("school_id", school.id).in("status", ["scheduled", "in_progress"]);
-        out.mySchoolClasses = classCount ?? 0;
+          .eq("organization_id", org.id);
+        out.myOrgMembers = count ?? 0;
+        const { count: classCount } = await supabase.from("classes").select("id", { count: "exact", head: true }).eq("organization_id", org.id).in("status", ["scheduled", "in_progress"]);
+        out.myOrgClasses = classCount ?? 0;
       }
     }
 

@@ -38,7 +38,7 @@ export const getTournamentDetail = createServerFn({ method: "POST" })
     const { supabase, userId } = context;
     const { data: t, error } = await supabase
       .from("tournaments")
-      .select("id, name, description, format, status, starts_at, ends_at, max_participants, rounds, school_id, created_by")
+      .select("id, name, description, format, status, starts_at, ends_at, max_participants, rounds, organization_id, created_by")
       .eq("id", data.tournament_id)
       .maybeSingle();
     if (error) fail("getTournamentDetail", error);
@@ -46,12 +46,12 @@ export const getTournamentDetail = createServerFn({ method: "POST" })
 
     const roles = await loadRoles(supabase, userId);
     const isSuper = roles.includes("super_admin");
-    let isSchoolOwner = false;
-    if (t.school_id) {
-      const { data: s } = await supabaseAdmin.from("schools").select("owner_user_id").eq("id", t.school_id).maybeSingle();
-      isSchoolOwner = s?.owner_user_id === userId;
+    let isOrgOwner = false;
+    if (t.organization_id) {
+      const { data: s } = await supabaseAdmin.from("organizations").select("owner_user_id").eq("id", t.organization_id).maybeSingle();
+      isOrgOwner = s?.owner_user_id === userId;
     }
-    const canManage = isSuper || isSchoolOwner;
+    const canManage = isSuper || isOrgOwner;
 
     const { data: participants } = await supabase
       .from("tournament_participants")
@@ -122,13 +122,13 @@ export const generateNextRound = createServerFn({ method: "POST" })
 
     const { data: t } = await supabase
       .from("tournaments")
-      .select("id, format, school_id, status, rounds")
+      .select("id, format, organization_id, status, rounds")
       .eq("id", data.tournament_id)
       .maybeSingle();
     if (!t) throw new Error("Tournament not found");
 
     if (!isSuper) {
-      const { data: s } = await supabaseAdmin.from("schools").select("owner_user_id").eq("id", t.school_id ?? "00000000-0000-0000-0000-000000000000").maybeSingle();
+      const { data: s } = await supabaseAdmin.from("organizations").select("owner_user_id").eq("id", t.organization_id ?? "00000000-0000-0000-0000-000000000000").maybeSingle();
       if (s?.owner_user_id !== userId) throw new Error("Forbidden");
     }
 

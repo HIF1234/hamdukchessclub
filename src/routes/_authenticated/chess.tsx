@@ -1,23 +1,11 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { useState } from "react";
-import { toast } from "sonner";
+import { useQuery } from "@tanstack/react-query";
 import { DashboardShell } from "@/components/dashboard/dashboard-shell";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { RefreshCw, Link2, Unlink } from "lucide-react";
-import {
-  getMyChessProfile,
-  linkChessAccount,
-  syncMyChessData,
-  unlinkChessAccount,
-  listChessEmbeds,
-} from "@/lib/hamduk/hamduk.functions";
+import { getMyChessProfile, listChessEmbeds } from "@/lib/hamduk/hamduk.functions";
 
 export const Route = createFileRoute("/_authenticated/chess")({
   head: () => ({
@@ -32,49 +20,15 @@ export const Route = createFileRoute("/_authenticated/chess")({
 });
 
 function ChessPage() {
-  const qc = useQueryClient();
   const load = useServerFn(getMyChessProfile);
   const loadEmbeds = useServerFn(listChessEmbeds);
-  const link = useServerFn(linkChessAccount);
-  const unlink = useServerFn(unlinkChessAccount);
-  const sync = useServerFn(syncMyChessData);
-
-  const [username, setUsername] = useState("");
 
   const { data, isLoading } = useQuery({ queryKey: ["hamduk", "me"], queryFn: () => load() });
   const { data: embeds } = useQuery({ queryKey: ["hamduk", "embeds"], queryFn: () => loadEmbeds() });
 
-  const invalidate = () => qc.invalidateQueries({ queryKey: ["hamduk", "me"] });
-
-  const linkMut = useMutation({
-    mutationFn: () => link({ data: { username: username.trim() } }),
-    onSuccess: () => {
-      toast.success("Hamduk Chess account linked and synced.");
-      setUsername("");
-      invalidate();
-    },
-    onError: (e: Error) => toast.error(e.message),
-  });
-
-  const syncMut = useMutation({
-    mutationFn: () => sync(),
-    onSuccess: () => {
-      toast.success("Chess data refreshed.");
-      invalidate();
-    },
-    onError: (e: Error) => toast.error(e.message),
-  });
-
-  const unlinkMut = useMutation({
-    mutationFn: () => unlink(),
-    onSuccess: () => {
-      toast.success("Account unlinked.");
-      invalidate();
-    },
-    onError: (e: Error) => toast.error(e.message),
-  });
-
-  const rating = data?.rating;
+  const ratings = data?.ratings ?? [];
+  const games = data?.games ?? [];
+  const headline = ratings[0];
 
   return (
     <DashboardShell>
@@ -82,87 +36,26 @@ function ChessPage() {
         <p className="text-xs uppercase tracking-widest text-primary">Hamduk Chess</p>
         <h1 className="mt-2 font-display text-4xl">My chess</h1>
         <p className="mt-2 text-muted-foreground">
-          Ratings, games and training boards served by the Hamduk Chess platform.
+          Ratings, games and training boards -- the same account you play with on play.chess.hamduk.com.ng.
         </p>
       </div>
 
       {isLoading && <p className="text-muted-foreground">Loading…</p>}
 
-      {!isLoading && !data?.link && (
-        <Card className="max-w-xl p-6">
-          <h2 className="font-display text-2xl">Link your Hamduk Chess account</h2>
-          <p className="mt-2 text-sm text-muted-foreground">
-            Enter the username you play with on Hamduk Chess. We'll pull in your rating and recent games.
-          </p>
-          <div className="mt-4 space-y-2">
-            <Label htmlFor="hamduk-username">Hamduk Chess username</Label>
-            <Input
-              id="hamduk-username"
-              value={username}
-              onChange={(e) => setUsername(e.target.value)}
-              placeholder="e.g. adaobi_k"
-            />
-          </div>
-          <Button
-            className="mt-4"
-            disabled={username.trim().length < 2 || linkMut.isPending}
-            onClick={() => linkMut.mutate()}
-          >
-            <Link2 className="mr-2 h-4 w-4" />
-            {linkMut.isPending ? "Linking…" : "Link account"}
-          </Button>
-        </Card>
-      )}
-
-      {data?.link && (
+      {!isLoading && (
         <div className="space-y-6">
           <Card className="p-6">
             <div className="flex flex-wrap items-start justify-between gap-4">
               <div>
-                <p className="text-xs uppercase tracking-wider text-muted-foreground">Linked account</p>
-                <p className="mt-1 font-display text-2xl">{data.link.hamduk_username}</p>
-                <div className="mt-2 flex items-center gap-2">
-                  <Badge
-                    variant={data.link.link_status === "error" ? "destructive" : "secondary"}
-                    className="capitalize"
-                  >
-                    {data.link.link_status}
-                  </Badge>
-                  <span className="text-xs text-muted-foreground">
-                    {data.link.last_synced_at
-                      ? `Synced ${new Date(data.link.last_synced_at).toLocaleString()}`
-                      : "Not synced yet"}
-                  </span>
-                </div>
-                {data.link.link_status === "error" && (
-                  <div className="mt-3 max-w-lg rounded-md border border-destructive/40 bg-destructive/10 p-3">
-                    <p className="text-xs font-medium uppercase tracking-wider text-destructive">
-                      Last sync failed
-                    </p>
-                    <p className="mt-1 text-sm text-muted-foreground">
-                      {data.link.sync_error ?? "Hamduk Chess could not be reached."}
-                    </p>
-                    <p className="mt-2 text-xs text-muted-foreground">
-                      If this keeps happening, the Hamduk Chess platform may be having trouble with this
-                      username — try Refresh, or contact a club admin.
-                    </p>
-                  </div>
-                )}
+                <p className="text-xs uppercase tracking-wider text-muted-foreground">Best category</p>
+                <p className="mt-1 font-display text-2xl">
+                  {headline ? `${headline.time_control} · ${headline.variant}` : "No rated games yet"}
+                </p>
               </div>
               <div className="text-right">
-                <p className="text-xs uppercase tracking-wider text-muted-foreground">Classical</p>
-                <p className="font-display text-4xl">{rating?.classical_rating ?? "—"}</p>
+                <p className="text-xs uppercase tracking-wider text-muted-foreground">Rating</p>
+                <p className="font-display text-4xl">{headline?.rating ?? "—"}</p>
               </div>
-            </div>
-            <div className="mt-5 flex gap-2">
-              <Button variant="outline" size="sm" disabled={syncMut.isPending} onClick={() => syncMut.mutate()}>
-                <RefreshCw className={`mr-2 h-4 w-4 ${syncMut.isPending ? "animate-spin" : ""}`} />
-                Refresh
-              </Button>
-              <Button variant="ghost" size="sm" disabled={unlinkMut.isPending} onClick={() => unlinkMut.mutate()}>
-                <Unlink className="mr-2 h-4 w-4" />
-                Unlink
-              </Button>
             </div>
           </Card>
 
@@ -175,8 +68,8 @@ function ChessPage() {
 
             <TabsContent value="ratings" className="mt-4">
               <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-                {(rating?.breakdown as any[] | undefined)?.length ? (
-                  (rating!.breakdown as any[]).map((b, i) => (
+                {ratings.length ? (
+                  ratings.map((b: any, i: number) => (
                     <Card key={i} className="p-5">
                       <p className="text-xs uppercase tracking-wider text-muted-foreground">
                         {b.time_control} · {b.variant}
@@ -207,14 +100,14 @@ function ChessPage() {
                     </tr>
                   </thead>
                   <tbody>
-                    {data.games.length === 0 && (
+                    {games.length === 0 && (
                       <tr>
                         <td colSpan={6} className="px-4 py-6 text-center text-muted-foreground">
-                          No games synced yet.
+                          No rated games yet.
                         </td>
                       </tr>
                     )}
-                    {data.games.map((g: any) => (
+                    {games.map((g: any) => (
                       <tr key={g.game_id} className="border-t border-border/40">
                         <td className="px-4 py-3 text-muted-foreground">
                           {g.played_at ? new Date(g.played_at).toLocaleDateString() : "—"}

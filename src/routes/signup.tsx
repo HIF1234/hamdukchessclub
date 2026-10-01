@@ -14,7 +14,7 @@ const schema = z.object({
   full_name: z.string().trim().min(2, "Full name is required").max(100),
   email: z.string().email("Enter a valid email").max(255),
   password: z.string().min(8, "Min 8 characters").max(72),
-  role: z.enum(["member", "school_admin"]),
+  role: z.enum(["member", "org_admin"]),
 });
 
 export const Route = createFileRoute("/signup")({
@@ -27,7 +27,7 @@ function SignupPage() {
   const [full_name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [role, setRole] = useState<"member" | "school_admin">("member");
+  const [role, setRole] = useState<"member" | "org_admin">("member");
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
 
@@ -83,7 +83,7 @@ function SignupPage() {
         </div>
         <div className="space-y-2">
           <Label>I am signing up as</Label>
-          <RadioGroup value={role} onValueChange={(v) => setRole(v as "member" | "school_admin")} className="grid grid-cols-2 gap-2">
+          <RadioGroup value={role} onValueChange={(v) => setRole(v as "member" | "org_admin")} className="grid grid-cols-2 gap-2">
             <label className="flex items-start gap-3 rounded-lg border border-border p-3 cursor-pointer hover:border-primary transition-colors has-[:checked]:border-primary has-[:checked]:bg-primary/5">
               <RadioGroupItem value="member" id="r-member" className="mt-0.5" />
               <div>
@@ -92,7 +92,7 @@ function SignupPage() {
               </div>
             </label>
             <label className="flex items-start gap-3 rounded-lg border border-border p-3 cursor-pointer hover:border-primary transition-colors has-[:checked]:border-primary has-[:checked]:bg-primary/5">
-              <RadioGroupItem value="school_admin" id="r-school" className="mt-0.5" />
+              <RadioGroupItem value="org_admin" id="r-school" className="mt-0.5" />
               <div>
                 <div className="text-sm font-medium">School</div>
                 <div className="text-xs text-muted-foreground">Enroll students</div>

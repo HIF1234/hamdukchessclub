@@ -22,7 +22,7 @@ export const getClassDetail = createServerFn({ method: "POST" })
     const { supabase, userId } = context;
     const { data: cls, error } = await supabase
       .from("classes")
-      .select("id, title, description, level, status, starts_at, ends_at, capacity, tutor_id, school_id, meeting_url, resources, session_notes, attendance_taken_at, created_by")
+      .select("id, title, description, level, status, starts_at, ends_at, capacity, tutor_id, organization_id, meeting_url, resources, session_notes, attendance_taken_at, created_by")
       .eq("id", data.class_id)
       .maybeSingle();
     if (error) fail("getClassDetail", error);
@@ -31,16 +31,16 @@ export const getClassDetail = createServerFn({ method: "POST" })
     const roles = await loadRoles(supabase, userId);
     const isSuper = roles.includes("super_admin");
     const isTutor = cls.tutor_id === userId;
-    let isSchoolOwner = false;
-    if (cls.school_id) {
+    let isOrgOwner = false;
+    if (cls.organization_id) {
       const { data: s } = await supabaseAdmin
-        .from("schools")
+        .from("organizations")
         .select("owner_user_id")
-        .eq("id", cls.school_id)
+        .eq("id", cls.organization_id)
         .maybeSingle();
-      isSchoolOwner = s?.owner_user_id === userId;
+      isOrgOwner = s?.owner_user_id === userId;
     }
-    const canManage = isSuper || isTutor || isSchoolOwner;
+    const canManage = isSuper || isTutor || isOrgOwner;
 
     const client = canManage ? supabaseAdmin : supabase;
     const { data: enrollments } = await client

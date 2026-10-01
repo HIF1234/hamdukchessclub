@@ -10,7 +10,7 @@ import { Progress } from "@/components/ui/progress";
 import { Card } from "@/components/ui/card";
 import { Logo } from "@/components/brand/logo";
 import { useAuth } from "@/lib/auth/auth-context";
-import { saveOnboarding, upsertSchool } from "@/lib/onboarding/onboarding.functions";
+import { saveOnboarding, upsertOrganization } from "@/lib/onboarding/onboarding.functions";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/_authenticated/onboarding")({
@@ -35,7 +35,7 @@ type MemberForm = {
   lecture_level: "beginner" | "intermediate" | "advanced";
 };
 
-type SchoolForm = {
+type OrgForm = {
   name: string;
   contact_person: string;
   contact_email: string;
@@ -49,10 +49,10 @@ function OnboardingWizard() {
   const { profile, roles, refresh } = useAuth();
   const navigate = useNavigate();
   const save = useServerFn(saveOnboarding);
-  const saveSchool = useServerFn(upsertSchool);
-  const isSchool = roles.includes("school_admin");
+  const saveOrg = useServerFn(upsertOrganization);
+  const isOrgAdmin = roles.includes("org_admin");
 
-  const totalSteps = isSchool ? 4 : 5;
+  const totalSteps = isOrgAdmin ? 4 : 5;
   const [step, setStep] = useState(() => Math.min(Math.max(profile?.onboarding_step ?? 1, 1), totalSteps));
   const [submitting, setSubmitting] = useState(false);
 
@@ -75,7 +75,7 @@ function OnboardingWizard() {
     lecture_level: profile?.lecture_level ?? "beginner",
   });
 
-  const [school, setSchool] = useState<SchoolForm>({
+  const [org, setOrg] = useState<OrgForm>({
     name: "",
     contact_person: profile?.full_name ?? "",
     contact_email: profile?.email ?? "",
@@ -96,8 +96,8 @@ function OnboardingWizard() {
           onboarding_completed: completed,
         },
       });
-      if (isSchool && nextStep >= 2) {
-        await saveSchool({ data: { ...school, student_count: Number(school.student_count) || 0 } });
+      if (isOrgAdmin && nextStep >= 2) {
+        await saveOrg({ data: { ...org, student_count: Number(org.student_count) || 0 } });
       }
       await refresh();
       setStep(nextStep);
@@ -157,7 +157,7 @@ function OnboardingWizard() {
             </div>
           )}
 
-           {step === 2 && !isSchool && (
+           {step === 2 && !isOrgAdmin && (
             <div className="space-y-4">
                <h2 className="font-display text-2xl">Membership type</h2>
                <p className="text-sm text-muted-foreground">Choose the club experience you want to start with.</p>
@@ -171,7 +171,7 @@ function OnboardingWizard() {
              </div>
            )}
 
-           {step === 3 && !isSchool && (
+           {step === 3 && !isOrgAdmin && (
              <div className="space-y-4">
                <h2 className="font-display text-2xl">Billing cycle</h2>
                <p className="text-sm text-muted-foreground">Annual membership includes the best value.</p>
@@ -185,7 +185,7 @@ function OnboardingWizard() {
              </div>
            )}
 
-           {step === 4 && !isSchool && (
+           {step === 4 && !isOrgAdmin && (
              <div className="space-y-4">
                <h2 className="font-display text-2xl">Lecture level</h2>
                <p className="text-sm text-muted-foreground">You can change this later as your game develops.</p>
@@ -200,7 +200,7 @@ function OnboardingWizard() {
              </div>
            )}
 
-           {step === 5 && !isSchool && (
+           {step === 5 && !isOrgAdmin && (
              <div className="space-y-4">
                <h2 className="font-display text-2xl">Review your setup</h2>
               <div className="grid grid-cols-2 gap-4">
@@ -227,31 +227,31 @@ function OnboardingWizard() {
             </div>
           )}
 
-           {step === 2 && isSchool && (
+           {step === 2 && isOrgAdmin && (
             <div className="space-y-4">
               <h2 className="font-display text-2xl">School details</h2>
               <Field label="School name">
-                <Input value={school.name} onChange={(e) => setSchool({ ...school, name: e.target.value })} />
+                <Input value={org.name} onChange={(e) => setOrg({ ...org, name: e.target.value })} />
               </Field>
               <div className="grid grid-cols-2 gap-4">
                 <Field label="Contact person">
-                  <Input value={school.contact_person} onChange={(e) => setSchool({ ...school, contact_person: e.target.value })} />
+                  <Input value={org.contact_person} onChange={(e) => setOrg({ ...org, contact_person: e.target.value })} />
                 </Field>
                 <Field label="Contact phone">
-                  <Input value={school.contact_phone} onChange={(e) => setSchool({ ...school, contact_phone: e.target.value })} />
+                  <Input value={org.contact_phone} onChange={(e) => setOrg({ ...org, contact_phone: e.target.value })} />
                 </Field>
               </div>
               <Field label="Contact email">
-                <Input type="email" value={school.contact_email} onChange={(e) => setSchool({ ...school, contact_email: e.target.value })} />
+                <Input type="email" value={org.contact_email} onChange={(e) => setOrg({ ...org, contact_email: e.target.value })} />
               </Field>
               <Field label="Address">
-                <Textarea value={school.address} onChange={(e) => setSchool({ ...school, address: e.target.value })} rows={2} />
+                <Textarea value={org.address} onChange={(e) => setOrg({ ...org, address: e.target.value })} rows={2} />
               </Field>
               <Field label="Approx. student count">
-                <Input type="number" value={school.student_count} onChange={(e) => setSchool({ ...school, student_count: Number(e.target.value) })} />
+                <Input type="number" value={org.student_count} onChange={(e) => setOrg({ ...org, student_count: Number(e.target.value) })} />
               </Field>
                <Field label="Program tier">
-                 <Select value={school.program_tier} onValueChange={(v) => setSchool({ ...school, program_tier: v as SchoolForm["program_tier"] })}>
+                 <Select value={org.program_tier} onValueChange={(v) => setOrg({ ...org, program_tier: v as OrgForm["program_tier"] })}>
                    <SelectTrigger><SelectValue /></SelectTrigger>
                    <SelectContent>
                      <SelectItem value="starter">Starter</SelectItem>
@@ -263,7 +263,7 @@ function OnboardingWizard() {
             </div>
           )}
 
-           {step === 3 && isSchool && (
+           {step === 3 && isOrgAdmin && (
             <div className="space-y-4">
               <h2 className="font-display text-2xl">Preferences</h2>
               <div className="grid grid-cols-2 gap-4">
@@ -285,12 +285,12 @@ function OnboardingWizard() {
             </div>
           )}
 
-           {step === 4 && isSchool && (
+           {step === 4 && isOrgAdmin && (
              <div className="space-y-3">
                <h2 className="font-display text-2xl">Review your school</h2>
-               <Summary k="School" v={school.name || "—"} />
-               <Summary k="Program tier" v={school.program_tier} />
-               <Summary k="Students" v={String(school.student_count || 0)} />
+               <Summary k="School" v={org.name || "—"} />
+               <Summary k="Program tier" v={org.program_tier} />
+               <Summary k="Students" v={String(org.student_count || 0)} />
                <p className="pt-4 text-sm text-muted-foreground">Next, choose a plan. Tutor assignment notifications will appear once your school is active.</p>
              </div>
            )}

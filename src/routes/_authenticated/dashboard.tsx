@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { useAuth } from "@/lib/auth/auth-context";
 import { DashboardShell } from "@/components/dashboard/dashboard-shell";
 import { getDashboardStats, type RoleStats } from "@/lib/dashboard/dashboard.functions";
-import { Trophy, Users, School, CreditCard, GraduationCap, BookOpen, Sparkles } from "lucide-react";
+import { Trophy, Users, Building2, CreditCard, GraduationCap, BookOpen, Sparkles } from "lucide-react";
 import { Link } from "@tanstack/react-router";
 
 export const Route = createFileRoute("/_authenticated/dashboard")({
@@ -25,8 +25,8 @@ function Dashboard() {
 
   const primaryRole = roles.includes("super_admin")
     ? "super_admin"
-    : roles.includes("school_admin")
-    ? "school_admin"
+    : roles.includes("org_admin")
+    ? "org_admin"
     : roles.includes("tutor")
     ? "tutor"
     : "member";
@@ -45,7 +45,7 @@ function Dashboard() {
       </div>
 
       {primaryRole === "super_admin" && <SuperAdminView stats={stats} />}
-      {primaryRole === "school_admin" && <SchoolAdminView stats={stats} />}
+      {primaryRole === "org_admin" && <OrgAdminView stats={stats} />}
        {primaryRole === "tutor" && <TutorView stats={stats} />}
       {primaryRole === "member" && <MemberView />}
     </DashboardShell>
@@ -59,9 +59,9 @@ function hour() {
 function tagline(role: string) {
   switch (role) {
     case "super_admin":
-      return "Club-wide overview — members, schools, payments, and operations at a glance.";
-    case "school_admin":
-      return "Your school's home base — manage students, classes, and your subscription.";
+      return "Club-wide overview — members, organizations, payments, and operations at a glance.";
+    case "org_admin":
+      return "Your organization's home base — manage students, classes, and your subscription.";
     case "tutor":
       return "Your teaching dashboard — upcoming classes, students, and resources.";
     default:
@@ -88,13 +88,13 @@ function StatCard({ label, value, hint, icon: Icon }: { label: string; value: st
 
 function SuperAdminView({ stats }: { stats?: RoleStats }) {
   const m = stats?.members;
-  const s = stats?.schools;
+  const s = stats?.organizations;
   const p = stats?.payments;
   return (
     <>
       <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <StatCard label="Total members" value={m ? String(m.total) : "—"} hint={m ? `${m.active} active` : ""} icon={Users} />
-        <StatCard label="Schools" value={s ? String(s.total) : "—"} hint={s ? `${s.activeSubs} on active plans` : ""} icon={School} />
+        <StatCard label="Organizations" value={s ? String(s.total) : "—"} hint={s ? `${s.activeSubs} on active plans` : ""} icon={Building2} />
         <StatCard label="Revenue (all time)" value={p ? formatNaira(p.totalKobo) : "—"} hint={`${p?.successCount ?? 0} successful payments`} icon={CreditCard} />
         <StatCard label="Revenue (30d)" value={p ? formatNaira(p.last30Kobo) : "—"} hint="Last 30 days" icon={Sparkles} />
       </div>
@@ -113,7 +113,7 @@ function SuperAdminView({ stats }: { stats?: RoleStats }) {
            <p className="text-sm text-muted-foreground mb-4">Open a workspace to manage the club.</p>
           <div className="flex gap-2 flex-wrap">
              <Link to="/members"><Badge>Member mgmt</Badge></Link>
-             <Link to="/schools"><Badge>School mgmt</Badge></Link>
+             <Link to="/organizations"><Badge>Organization mgmt</Badge></Link>
              <Link to="/tutors"><Badge>Tutors</Badge></Link>
              <Link to="/classes"><Badge>Classes</Badge></Link>
              <Link to="/tournaments"><Badge>Tournaments</Badge></Link>
@@ -124,18 +124,18 @@ function SuperAdminView({ stats }: { stats?: RoleStats }) {
   );
 }
 
-function SchoolAdminView({ stats }: { stats?: RoleStats }) {
-  const school = stats?.mySchool;
+function OrgAdminView({ stats }: { stats?: RoleStats }) {
+  const org = stats?.myOrg;
   return (
     <>
       <div className="grid sm:grid-cols-3 gap-4">
-        <StatCard label="My school" value={school?.name ?? "Not set up"} icon={School} />
-        <StatCard label="Students enrolled" value={String(stats?.mySchoolMembers ?? 0)} hint={school?.studentCount ? `Capacity: ${school.studentCount}` : ""} icon={Users} />
-         <StatCard label="Active classes" value={String(stats?.mySchoolClasses ?? 0)} hint="Scheduled or in progress" icon={BookOpen} />
+        <StatCard label="My organization" value={org?.name ?? "Not set up"} icon={Building2} />
+        <StatCard label="Students enrolled" value={String(stats?.myOrgMembers ?? 0)} hint={org?.studentCount ? `Capacity: ${org.studentCount}` : ""} icon={Users} />
+         <StatCard label="Active classes" value={String(stats?.myOrgClasses ?? 0)} hint="Scheduled or in progress" icon={BookOpen} />
       </div>
        <Card className="p-6 mt-6">
-        <h3 className="font-display text-xl mb-1">Your school workspace</h3>
-         <p className="text-sm text-muted-foreground">Enrol students, schedule classes, and track progress from your school workspace.</p>
+        <h3 className="font-display text-xl mb-1">Your organization workspace</h3>
+         <p className="text-sm text-muted-foreground">Enrol students, schedule classes, and track progress from your organization workspace.</p>
       </Card>
     </>
   );

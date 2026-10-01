@@ -30,7 +30,7 @@ function BillingPage() {
   const optFree = useServerFn(optInFreeTier);
   const [busyPlan, setBusyPlan] = useState<string | null>(null);
 
-  const audience: "school" | "member" = roles.includes("school_admin") ? "school" : "member";
+  const audience: "school" | "member" = roles.includes("org_admin") ? "school" : "member";
 
   const { data: plans, isLoading } = useQuery({
     queryKey: ["plans"],

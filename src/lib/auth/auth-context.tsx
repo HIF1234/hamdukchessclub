@@ -4,7 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useRouter } from "@tanstack/react-router";
 import { useQueryClient } from "@tanstack/react-query";
 
-export type AppRole = "super_admin" | "school_admin" | "tutor" | "member";
+export type AppRole = "super_admin" | "org_admin" | "tutor" | "member";
 export type AccountState = "unverified" | "pending_payment" | "active" | "expired" | "suspended";
 
 export interface ProfileLite {

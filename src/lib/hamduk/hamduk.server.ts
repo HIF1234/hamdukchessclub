@@ -71,48 +71,6 @@ export async function hamduk<T>(
 
 /* ---------- typed endpoint wrappers ---------- */
 
-export type HamdukRating = {
-  username: string;
-  classical_rating: number | null;
-  country: string | null;
-  ratings: Array<{
-    time_control: string;
-    variant: string;
-    rating: number;
-    games_played: number;
-    wins: number;
-    losses: number;
-    draws: number;
-  }>;
-};
-
-export type HamdukGame = {
-  game_id: string;
-  white: string;
-  black: string;
-  time_control: string;
-  variant: string;
-  status: string;
-  result: string | null;
-  end_reason: string | null;
-  rated: boolean;
-  moves: number;
-  pgn: string | null;
-  white_rating_delta: number | null;
-  black_rating_delta: number | null;
-  created_at: string | null;
-  ended_at: string | null;
-};
-
-export const fetchRating = (username: string) =>
-  hamduk<HamdukRating>(`/users/${encodeURIComponent(username)}/rating`);
-
-export const fetchGames = (username: string, limit = 20, tc?: string) =>
-  hamduk<{ username: string; count: number; games: HamdukGame[] }>(
-    `/users/${encodeURIComponent(username)}/games`,
-    { query: { limit, tc } },
-  );
-
 export type EmbedTokenResponse = {
   token: string;
   kind: string;
@@ -156,17 +114,3 @@ export const setSessionPosition = (sessionId: string, body: Record<string, unkno
 
 export const fetchSessionStudents = (sessionId: string) =>
   hamduk<Record<string, unknown>>(`/classes/session/${encodeURIComponent(sessionId)}/students`);
-
-export const registerRemoteWebhook = (url: string, events: string[]) =>
-  hamduk<{
-    webhook: { id: string; url: string; events: string[]; created_at: string };
-    signing_secret: string;
-  }>("/webhooks", { method: "POST", body: { url, events } });
-
-export const listRemoteWebhooks = () =>
-  hamduk<{ webhooks: Array<{ id: string; url: string; events: string[]; disabled?: boolean }> }>(
-    "/webhooks",
-  );
-
-export const deleteRemoteWebhook = (id: string) =>
-  hamduk<unknown>(`/webhooks/${encodeURIComponent(id)}`, { method: "DELETE" });

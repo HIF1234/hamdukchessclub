@@ -376,27 +376,36 @@ export type Database = {
       }
       organization_memberships: {
         Row: {
+          approved_at: string | null
+          approved_by: string | null
           cohort: string | null
           id: string
           joined_at: string
           organization_id: string
           role_in_org: string
+          status: string
           user_id: string
         }
         Insert: {
+          approved_at?: string | null
+          approved_by?: string | null
           cohort?: string | null
           id?: string
           joined_at?: string
           organization_id: string
           role_in_org?: string
+          status?: string
           user_id: string
         }
         Update: {
+          approved_at?: string | null
+          approved_by?: string | null
           cohort?: string | null
           id?: string
           joined_at?: string
           organization_id?: string
           role_in_org?: string
+          status?: string
           user_id?: string
         }
         Relationships: [
@@ -425,6 +434,8 @@ export type Database = {
           created_at: string
           id: string
           is_suspended: boolean | null
+          join_code: string | null
+          join_policy: string
           name: string
           owner_user_id: string | null
           program_tier: Database["club"]["Enums"]["organization_tier"] | null
@@ -447,6 +458,8 @@ export type Database = {
           created_at?: string
           id?: string
           is_suspended?: boolean | null
+          join_code?: string | null
+          join_policy?: string
           name: string
           owner_user_id?: string | null
           program_tier?: Database["club"]["Enums"]["organization_tier"] | null
@@ -469,6 +482,8 @@ export type Database = {
           created_at?: string
           id?: string
           is_suspended?: boolean | null
+          join_code?: string | null
+          join_policy?: string
           name?: string
           owner_user_id?: string | null
           program_tier?: Database["club"]["Enums"]["organization_tier"] | null

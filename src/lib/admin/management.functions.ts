@@ -13,6 +13,9 @@ async function getRoles(supabase: any, userId: string) {
   return (data ?? []).map((r: any) => r.role as string);
 }
 
+const ORG_ROLES = ["student", "tutor", "assistant_coach", "parent", "staff", "tournament_manager", "equipment_manager"] as const;
+export type OrgRole = (typeof ORG_ROLES)[number];
+
 // MEMBERS
 export const listMembers = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
@@ -23,15 +26,20 @@ export const listMembers = createServerFn({ method: "GET" })
       throw new Error("Forbidden");
     }
     let memberIds: string[] | null = null;
+    // role_in_org is scoped per-organization, so it's only shown when we're listing a single
+    // org's roster (the org_admin branch) -- not in the super_admin cross-org view, where the
+    // same member could hold different roles at different organizations.
+    let roleByUserId: Record<string, string> = {};
     if (!roles.includes("super_admin")) {
       const { data: org } = await supabaseAdmin.from("organizations").select("id").eq("owner_user_id", userId).maybeSingle();
       if (!org) return [];
       const { data: memberships, error: membershipError } = await supabase
         .from("organization_memberships")
-        .select("user_id")
+        .select("user_id, role_in_org")
         .eq("organization_id", org.id);
       if (membershipError) fail("listMembers.memberships", membershipError);
       memberIds = (memberships ?? []).map((membership) => membership.user_id);
+      for (const m of memberships ?? []) roleByUserId[m.user_id] = m.role_in_org;
       if (memberIds.length === 0) return [];
     }
     const client = roles.includes("super_admin") ? supabaseAdmin : supabaseAdmin;
@@ -43,7 +51,23 @@ export const listMembers = createServerFn({ method: "GET" })
     if (memberIds) query = query.in("id", memberIds);
     const { data, error } = await query;
     if (error) fail("listMembers", error);
-    return data ?? [];
+    return (data ?? []).map((m) => ({ ...m, role_in_org: roleByUserId[m.id] ?? null }));
+  });
+
+export const setMemberRole = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d) => z.object({ user_id: z.string().uuid(), role_in_org: z.enum(ORG_ROLES) }).parse(d))
+  .handler(async ({ context, data }) => {
+    const { userId } = context;
+    const { data: org } = await supabaseAdmin.from("organizations").select("id").eq("owner_user_id", userId).maybeSingle();
+    if (!org) throw new Error("You don't own an organization.");
+    const { error } = await supabaseAdmin
+      .from("organization_memberships")
+      .update({ role_in_org: data.role_in_org })
+      .eq("organization_id", org.id)
+      .eq("user_id", data.user_id);
+    if (error) fail("setMemberRole", error);
+    return { ok: true };
   });
 
 export const updateMemberState = createServerFn({ method: "POST" })

@@ -4,10 +4,21 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { useAuth } from "@/lib/auth/auth-context";
 import { DashboardShell } from "@/components/dashboard/dashboard-shell";
-import { listMembers, updateMemberState } from "@/lib/admin/management.functions";
+import { listMembers, updateMemberState, setMemberRole, type OrgRole } from "@/lib/admin/management.functions";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+
+const ORG_ROLE_LABEL: Record<OrgRole, string> = {
+  student: "Student",
+  tutor: "Tutor",
+  assistant_coach: "Assistant coach",
+  parent: "Parent/Guardian",
+  staff: "Staff",
+  tournament_manager: "Tournament manager",
+  equipment_manager: "Equipment manager",
+};
 
 export const Route = createFileRoute("/_authenticated/members")({
   head: () => ({ meta: [{ title: "Members — Hamduk Chess Club" }] }),
@@ -24,6 +35,8 @@ function MembersPage() {
   const qc = useQueryClient();
   const updateState = useServerFn(updateMemberState);
   const stateMut = useMutation({ mutationFn: (input: { user_id: string; account_state: "active" | "suspended" | "expired" }) => updateState({ data: input }), onSuccess: () => { toast.success("Member updated"); void qc.invalidateQueries({ queryKey: ["members"] }); }, onError: (e: Error) => toast.error(e.message) });
+  const setRole = useServerFn(setMemberRole);
+  const roleMut = useMutation({ mutationFn: (input: { user_id: string; role_in_org: OrgRole }) => setRole({ data: input }), onSuccess: () => { toast.success("Role updated"); void qc.invalidateQueries({ queryKey: ["members"] }); }, onError: (e: Error) => toast.error(e.message) });
 
   return (
     <DashboardShell>
@@ -40,6 +53,7 @@ function MembersPage() {
                 <th className="text-left px-4 py-3">Name</th>
                 <th className="text-left px-4 py-3">Email</th>
                 <th className="text-left px-4 py-3">State</th>
+                <th className="text-left px-4 py-3">Role</th>
                 <th className="text-left px-4 py-3">Level</th>
                 <th className="text-left px-4 py-3">Rating</th>
                  <th className="text-left px-4 py-3">Member since</th>
@@ -48,16 +62,37 @@ function MembersPage() {
             </thead>
             <tbody>
               {isLoading && (
-                <tr><td colSpan={7} className="px-4 py-8 text-center text-muted-foreground">Loading…</td></tr>
+                <tr><td colSpan={8} className="px-4 py-8 text-center text-muted-foreground">Loading…</td></tr>
               )}
               {error && (
-                <tr><td colSpan={7} className="px-4 py-8 text-center text-destructive">{(error as Error).message}</td></tr>
+                <tr><td colSpan={8} className="px-4 py-8 text-center text-destructive">{(error as Error).message}</td></tr>
               )}
               {data?.map((m) => (
                 <tr key={m.id} className="border-t border-border/40 hover:bg-secondary/20">
                   <td className="px-4 py-3 font-medium">{m.full_name}</td>
                   <td className="px-4 py-3 text-muted-foreground">{m.email}</td>
                   <td className="px-4 py-3"><Badge variant={m.account_state === "active" ? "default" : "secondary"}>{m.account_state}</Badge></td>
+                  <td className="px-4 py-3">
+                    {m.role_in_org ? (
+                      <Select
+                        value={m.role_in_org}
+                        onValueChange={(v) => roleMut.mutate({ user_id: m.id, role_in_org: v as OrgRole })}
+                      >
+                        <SelectTrigger className="h-8 w-44">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {Object.entries(ORG_ROLE_LABEL).map(([value, label]) => (
+                            <SelectItem key={value} value={value}>
+                              {label}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    ) : (
+                      <span className="text-muted-foreground">—</span>
+                    )}
+                  </td>
                   <td className="px-4 py-3 capitalize">{m.membership_level ?? "—"}</td>
                   <td className="px-4 py-3">{m.chess_rating ?? "—"}</td>
                    <td className="px-4 py-3 text-muted-foreground">{new Date(m.created_at).toLocaleDateString()}</td>
@@ -65,7 +100,7 @@ function MembersPage() {
                 </tr>
               ))}
               {data?.length === 0 && (
-                <tr><td colSpan={7} className="px-4 py-8 text-center text-muted-foreground">No members yet.</td></tr>
+                <tr><td colSpan={8} className="px-4 py-8 text-center text-muted-foreground">No members yet.</td></tr>
               )}
             </tbody>
           </table>

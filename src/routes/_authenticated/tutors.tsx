@@ -4,6 +4,7 @@ import { useQuery } from "@tanstack/react-query";
 import { DashboardShell } from "@/components/dashboard/dashboard-shell";
 import { listTutors } from "@/lib/admin/management.functions";
 import { Card } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
 
 export const Route = createFileRoute("/_authenticated/tutors")({
   head: () => ({ meta: [{ title: "Tutors — Hamduk Chess Club" }] }),
@@ -36,7 +37,12 @@ function TutorsPage() {
               {error && <tr><td colSpan={4} className="px-4 py-8 text-center text-destructive">{(error as Error).message}</td></tr>}
               {data?.map((t) => (
                 <tr key={t.id} className="border-t border-border/40 hover:bg-secondary/20">
-                  <td className="px-4 py-3 font-medium">{t.full_name}</td>
+                  <td className="px-4 py-3 font-medium">
+                    <span className="flex items-center gap-2">
+                      {t.full_name}
+                      {t.coach_verified && <Badge className="text-xs">Verified</Badge>}
+                    </span>
+                  </td>
                   <td className="px-4 py-3 text-muted-foreground">{t.email}</td>
                   <td className="px-4 py-3">{t.chess_rating ?? "—"}</td>
                   <td className="px-4 py-3 text-muted-foreground">{new Date(t.created_at).toLocaleDateString()}</td>

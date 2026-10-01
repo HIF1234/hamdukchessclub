@@ -204,7 +204,7 @@ export const listTutors = createServerFn({ method: "GET" })
     if (ids.length === 0) return [];
     const { data, error } = await supabaseAdmin
       .from("profiles")
-      .select("id, full_name, email, chess_rating, created_at")
+      .select("id, full_name, email, chess_rating, created_at, coach_verified, coach_bio, coach_specialties")
       .in("id", ids);
     if (error) fail("listTutors", error);
     return data ?? [];

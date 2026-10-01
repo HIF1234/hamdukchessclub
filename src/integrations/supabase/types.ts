@@ -221,6 +221,42 @@ export type Database = {
           },
         ]
       }
+      coach_applications: {
+        Row: {
+          bio: string
+          id: string
+          review_note: string | null
+          reviewed_at: string | null
+          reviewed_by: string | null
+          specialties: string[]
+          status: string
+          submitted_at: string
+          user_id: string
+        }
+        Insert: {
+          bio: string
+          id?: string
+          review_note?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          specialties?: string[]
+          status?: string
+          submitted_at?: string
+          user_id: string
+        }
+        Update: {
+          bio?: string
+          id?: string
+          review_note?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          specialties?: string[]
+          status?: string
+          submitted_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       embeds: {
         Row: {
           config: Json
@@ -682,6 +718,11 @@ export type Database = {
           bio: string | null
           chess_goals: string | null
           chess_rating: number | null
+          coach_bio: string | null
+          coach_specialties: string[]
+          coach_verified: boolean
+          coach_verified_at: string | null
+          coach_verified_by: string | null
           created_at: string
           date_of_birth: string | null
           email: string
@@ -713,6 +754,11 @@ export type Database = {
           bio?: string | null
           chess_goals?: string | null
           chess_rating?: number | null
+          coach_bio?: string | null
+          coach_specialties?: string[]
+          coach_verified?: boolean
+          coach_verified_at?: string | null
+          coach_verified_by?: string | null
           created_at?: string
           date_of_birth?: string | null
           email: string
@@ -746,6 +792,11 @@ export type Database = {
           bio?: string | null
           chess_goals?: string | null
           chess_rating?: number | null
+          coach_bio?: string | null
+          coach_specialties?: string[]
+          coach_verified?: boolean
+          coach_verified_at?: string | null
+          coach_verified_by?: string | null
           created_at?: string
           date_of_birth?: string | null
           email?: string

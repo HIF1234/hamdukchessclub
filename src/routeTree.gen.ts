@@ -24,6 +24,7 @@ import { Route as AuthenticatedBillingRouteImport } from './routes/_authenticate
 import { Route as AuthenticatedCalendarRouteImport } from './routes/_authenticated/calendar'
 import { Route as AuthenticatedChessRouteImport } from './routes/_authenticated/chess'
 import { Route as AuthenticatedClassesRouteImport } from './routes/_authenticated/classes'
+import { Route as AuthenticatedCoachApplicationsRouteImport } from './routes/_authenticated/coach-applications'
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
 import { Route as AuthenticatedFamilyRouteImport } from './routes/_authenticated/family'
 import { Route as AuthenticatedIntegrationsRouteImport } from './routes/_authenticated/integrations'
@@ -120,6 +121,12 @@ const AuthenticatedClassesRoute = AuthenticatedClassesRouteImport.update({
   path: '/classes',
   getParentRoute: () => AuthenticatedRoute,
 } as any)
+const AuthenticatedCoachApplicationsRoute =
+  AuthenticatedCoachApplicationsRouteImport.update({
+    id: '/coach-applications',
+    path: '/coach-applications',
+    getParentRoute: () => AuthenticatedRoute,
+  } as any)
 const AuthenticatedDashboardRoute = AuthenticatedDashboardRouteImport.update({
   id: '/dashboard',
   path: '/dashboard',
@@ -245,6 +252,7 @@ export interface FileRoutesByFullPath {
   '/calendar': typeof AuthenticatedCalendarRoute
   '/chess': typeof AuthenticatedChessRoute
   '/classes': typeof AuthenticatedClassesRouteWithChildren
+  '/coach-applications': typeof AuthenticatedCoachApplicationsRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/family': typeof AuthenticatedFamilyRoute
   '/integrations': typeof AuthenticatedIntegrationsRoute
@@ -281,6 +289,7 @@ export interface FileRoutesByTo {
   '/calendar': typeof AuthenticatedCalendarRoute
   '/chess': typeof AuthenticatedChessRoute
   '/classes': typeof AuthenticatedClassesRouteWithChildren
+  '/coach-applications': typeof AuthenticatedCoachApplicationsRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/family': typeof AuthenticatedFamilyRoute
   '/integrations': typeof AuthenticatedIntegrationsRoute
@@ -319,6 +328,7 @@ export interface FileRoutesById {
   '/_authenticated/calendar': typeof AuthenticatedCalendarRoute
   '/_authenticated/chess': typeof AuthenticatedChessRoute
   '/_authenticated/classes': typeof AuthenticatedClassesRouteWithChildren
+  '/_authenticated/coach-applications': typeof AuthenticatedCoachApplicationsRoute
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
   '/_authenticated/family': typeof AuthenticatedFamilyRoute
   '/_authenticated/integrations': typeof AuthenticatedIntegrationsRoute
@@ -357,6 +367,7 @@ export interface FileRouteTypes {
     | '/calendar'
     | '/chess'
     | '/classes'
+    | '/coach-applications'
     | '/dashboard'
     | '/family'
     | '/integrations'
@@ -393,6 +404,7 @@ export interface FileRouteTypes {
     | '/calendar'
     | '/chess'
     | '/classes'
+    | '/coach-applications'
     | '/dashboard'
     | '/family'
     | '/integrations'
@@ -430,6 +442,7 @@ export interface FileRouteTypes {
     | '/_authenticated/calendar'
     | '/_authenticated/chess'
     | '/_authenticated/classes'
+    | '/_authenticated/coach-applications'
     | '/_authenticated/dashboard'
     | '/_authenticated/family'
     | '/_authenticated/integrations'
@@ -572,6 +585,13 @@ declare module '@tanstack/react-router' {
       path: '/classes'
       fullPath: '/classes'
       preLoaderRoute: typeof AuthenticatedClassesRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
+    '/_authenticated/coach-applications': {
+      id: '/_authenticated/coach-applications'
+      path: '/coach-applications'
+      fullPath: '/coach-applications'
+      preLoaderRoute: typeof AuthenticatedCoachApplicationsRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
     '/_authenticated/dashboard': {
@@ -751,6 +771,7 @@ interface AuthenticatedRouteChildren {
   AuthenticatedCalendarRoute: typeof AuthenticatedCalendarRoute
   AuthenticatedChessRoute: typeof AuthenticatedChessRoute
   AuthenticatedClassesRoute: typeof AuthenticatedClassesRouteWithChildren
+  AuthenticatedCoachApplicationsRoute: typeof AuthenticatedCoachApplicationsRoute
   AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
   AuthenticatedFamilyRoute: typeof AuthenticatedFamilyRoute
   AuthenticatedIntegrationsRoute: typeof AuthenticatedIntegrationsRoute
@@ -775,6 +796,7 @@ const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
   AuthenticatedCalendarRoute: AuthenticatedCalendarRoute,
   AuthenticatedChessRoute: AuthenticatedChessRoute,
   AuthenticatedClassesRoute: AuthenticatedClassesRouteWithChildren,
+  AuthenticatedCoachApplicationsRoute: AuthenticatedCoachApplicationsRoute,
   AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,
   AuthenticatedFamilyRoute: AuthenticatedFamilyRoute,
   AuthenticatedIntegrationsRoute: AuthenticatedIntegrationsRoute,

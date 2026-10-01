@@ -23,6 +23,7 @@ import {
   Swords,
   Plug,
   Landmark,
+  Award,
   type LucideIcon,
 } from "lucide-react";
 
@@ -46,6 +47,7 @@ const NAV: NavItem[] = [
   { to: "/tutors", label: "Tutors", icon: GraduationCap, roles: ["super_admin", "org_admin"] },
   { to: "/analytics", label: "Analytics", icon: BarChart3, roles: ["super_admin", "org_admin"] },
   { to: "/audit", label: "Audit log", icon: ShieldCheck, roles: ["super_admin"] },
+  { to: "/coach-applications", label: "Coach applications", icon: Award, roles: ["super_admin"] },
   { to: "/integrations", label: "Integrations", icon: Plug, roles: ["super_admin"] },
   { to: "/announcements", label: "Announcements", icon: MessageSquare },
   { to: "/messages", label: "Messages", icon: MessageSquare },

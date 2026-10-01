@@ -27,8 +27,9 @@ import {
 } from "@/lib/profile/profile.functions";
 import { listMyMemberships, joinOrganizationByCode } from "@/lib/organizations/organizations.functions";
 import { listMyChildren } from "@/lib/family/family.functions";
+import { getMyCoachStatus, submitCoachApplication } from "@/lib/coaching/coaching.functions";
 import { toast } from "sonner";
-import { Download, Trash2, ShieldCheck, Bell, KeyRound, Mail, History, Building2, Users } from "lucide-react";
+import { Download, Trash2, ShieldCheck, Bell, KeyRound, Mail, History, Building2, Users, Award } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/settings")({
   head: () => ({ meta: [{ title: "Settings — Hamduk Chess Club" }] }),
@@ -64,6 +65,27 @@ function SettingsPage() {
 
   const fetchChildren = useServerFn(listMyChildren);
   const { data: children } = useQuery({ queryKey: ["my-children"], queryFn: () => fetchChildren() });
+
+  const isTutor = roles.includes("tutor");
+  const fetchCoachStatus = useServerFn(getMyCoachStatus);
+  const { data: coachStatus } = useQuery({ queryKey: ["my-coach-status"], queryFn: () => fetchCoachStatus(), enabled: isTutor });
+  const [coachBio, setCoachBio] = useState("");
+  const [coachSpecialties, setCoachSpecialties] = useState("");
+  const applyCoach = useServerFn(submitCoachApplication);
+  const applyCoachMut = useMutation({
+    mutationFn: () =>
+      applyCoach({
+        data: {
+          bio: coachBio.trim(),
+          specialties: coachSpecialties.split(",").map((s) => s.trim()).filter(Boolean),
+        },
+      }),
+    onSuccess: () => {
+      toast.success("Application submitted");
+      void qc.invalidateQueries({ queryKey: ["my-coach-status"] });
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
 
   const [form, setForm] = useState({
     full_name: "",
@@ -242,6 +264,58 @@ function SettingsPage() {
                       View classes &amp; tournaments
                     </Button>
                   </Link>
+                </div>
+              </div>
+            </Card>
+          )}
+
+          {isTutor && coachStatus && (
+            <Card className="p-6">
+              <div className="flex items-start gap-3">
+                <Award className="size-5 text-primary mt-0.5" />
+                <div className="flex-1">
+                  <div className="flex items-center gap-2">
+                    <h3 className="font-display text-lg">Hamduk-verified coach</h3>
+                    {coachStatus.verified && <Badge>Verified</Badge>}
+                  </div>
+                  {coachStatus.verified ? (
+                    <p className="text-xs text-muted-foreground mt-1">
+                      Verified {coachStatus.verified_at ? new Date(coachStatus.verified_at).toLocaleDateString() : ""}. This badge shows wherever you're listed as a tutor.
+                    </p>
+                  ) : coachStatus.application?.status === "pending" ? (
+                    <p className="text-xs text-muted-foreground mt-1">Your application is pending review.</p>
+                  ) : (
+                    <>
+                      <p className="text-xs text-muted-foreground mt-1">
+                        Apply for a platform-wide verified badge, shown wherever you're listed as a tutor.
+                      </p>
+                      {coachStatus.application?.status === "rejected" && (
+                        <p className="text-xs text-destructive mt-2">
+                          Previous application wasn't approved{coachStatus.application.review_note ? `: ${coachStatus.application.review_note}` : "."}
+                        </p>
+                      )}
+                      <div className="mt-3 space-y-2">
+                        <Textarea
+                          value={coachBio}
+                          onChange={(e) => setCoachBio(e.target.value)}
+                          rows={3}
+                          placeholder="Tell us about your coaching experience and credentials…"
+                        />
+                        <Input
+                          value={coachSpecialties}
+                          onChange={(e) => setCoachSpecialties(e.target.value)}
+                          placeholder="Specialties, comma separated (e.g. openings, endgames)"
+                        />
+                        <Button
+                          size="sm"
+                          disabled={applyCoachMut.isPending || coachBio.trim().length < 20}
+                          onClick={() => applyCoachMut.mutate()}
+                        >
+                          Submit application
+                        </Button>
+                      </div>
+                    </>
+                  )}
                 </div>
               </div>
             </Card>

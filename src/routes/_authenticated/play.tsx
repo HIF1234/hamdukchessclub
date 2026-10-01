@@ -1,65 +1,95 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { useServerFn } from "@tanstack/react-start";
+import { useQuery } from "@tanstack/react-query";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { DashboardShell } from "@/components/dashboard/dashboard-shell";
 import { Card } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { ExternalLink, Puzzle, Swords, Bot } from "lucide-react";
+import { Puzzle, Swords, Trophy, Gamepad2 } from "lucide-react";
+import { useAuth } from "@/lib/auth/auth-context";
+import { listChessEmbeds } from "@/lib/hamduk/hamduk.functions";
 
 export const Route = createFileRoute("/_authenticated/play")({
   head: () => ({ meta: [{ title: "Play & Puzzles — Hamduk Chess Club" }] }),
   component: PlayPage,
 });
 
+const KIND_META = {
+  board: { icon: Swords, label: "Board" },
+  puzzle: { icon: Puzzle, label: "Puzzle" },
+  leaderboard: { icon: Trophy, label: "Leaderboard" },
+  game: { icon: Gamepad2, label: "Live game" },
+} as const;
+
+type Embed = {
+  id: string;
+  kind: keyof typeof KIND_META;
+  label: string;
+  embed_url: string;
+  expires_at: string | null;
+};
+
 function PlayPage() {
+  const { roles } = useAuth();
+  const isAdmin = roles.includes("super_admin");
+  const load = useServerFn(listChessEmbeds);
+  const { data: embeds, isLoading } = useQuery({
+    queryKey: ["hamduk", "embeds"],
+    queryFn: () => load() as Promise<Embed[]>,
+  });
+
   return (
     <DashboardShell>
       <div className="mb-8">
         <p className="text-xs uppercase tracking-widest text-primary">Play & Puzzles</p>
         <h1 className="mt-2 font-display text-4xl">Sharpen your game</h1>
-        <p className="mt-2 text-muted-foreground">Casual play, daily puzzles and bot training. Hook in your preferred chess board provider here.</p>
-      </div>
-
-      <div className="grid md:grid-cols-3 gap-4">
-        <PlayCard
-          icon={<Swords className="h-6 w-6 text-primary" />}
-          title="Casual play"
-          body="Quick games with other members. Board API plug-in point — connect a Lichess study, chess.com embed or your own widget."
-          actionLabel="Open board"
-        />
-        <PlayCard
-          icon={<Puzzle className="h-6 w-6 text-primary" />}
-          title="Daily puzzles"
-          body="Tactics, endgames and motifs. Wire a puzzle API (Lichess /api/puzzle/daily, ChessTempo) to swap the placeholder."
-          actionLabel="Get today's puzzle"
-        />
-        <PlayCard
-          icon={<Bot className="h-6 w-6 text-primary" />}
-          title="Bot training"
-          body="Practise against engine levels. Stockfish.js or a hosted analysis API can be mounted here."
-          actionLabel="Play a bot"
-        />
-      </div>
-
-      <Card className="mt-8 p-8 text-center">
-        <Badge variant="outline" className="mb-3">Plug-in point</Badge>
-        <h2 className="font-display text-2xl">Board provider not configured</h2>
-        <p className="text-muted-foreground mt-2 max-w-xl mx-auto">
-          This area renders the chess board widget once a provider is connected. Drop your board component or iframe URL into <code className="text-primary">src/routes/_authenticated/play.tsx</code>.
+        <p className="mt-2 text-muted-foreground">
+          Hamduk Chess, right here — boards, puzzles and the club leaderboard, powered by play.chess.hamduk.com.ng.
         </p>
-      </Card>
-    </DashboardShell>
-  );
-}
+      </div>
 
-function PlayCard({ icon, title, body, actionLabel }: { icon: React.ReactNode; title: string; body: string; actionLabel: string }) {
-  return (
-    <Card className="p-5 flex flex-col">
-      <div>{icon}</div>
-      <h3 className="mt-3 font-display text-xl">{title}</h3>
-      <p className="mt-1 text-sm text-muted-foreground flex-1">{body}</p>
-      <Button variant="secondary" size="sm" className="mt-4 self-start" disabled>
-        <ExternalLink className="h-4 w-4 mr-1" />{actionLabel}
-      </Button>
-    </Card>
+      {isLoading ? (
+        <Card className="p-8 text-center text-muted-foreground">Loading…</Card>
+      ) : embeds && embeds.length > 0 ? (
+        <div className="grid md:grid-cols-2 gap-4">
+          {embeds.map((e) => {
+            const meta = KIND_META[e.kind] ?? KIND_META.board;
+            const Icon = meta.icon;
+            return (
+              <Card key={e.id} className="overflow-hidden">
+                <div className="flex items-center gap-2 p-4 pb-2">
+                  <Icon className="h-4 w-4 text-primary" />
+                  <span className="font-display text-lg">{e.label}</span>
+                  <Badge variant="outline" className="ml-auto">{meta.label}</Badge>
+                </div>
+                <iframe
+                  src={e.embed_url}
+                  title={e.label}
+                  loading="lazy"
+                  style={{ width: "100%", aspectRatio: "1 / 1", border: 0 }}
+                />
+              </Card>
+            );
+          })}
+        </div>
+      ) : (
+        <Card className="p-8 text-center">
+          <Badge variant="outline" className="mb-3">Nothing set up yet</Badge>
+          <h2 className="font-display text-2xl">No play widgets configured</h2>
+          {isAdmin ? (
+            <p className="text-muted-foreground mt-2 max-w-xl mx-auto">
+              Create a board, puzzle, leaderboard or live-game widget on{" "}
+              <Link to="/integrations" className="text-primary underline">
+                Integrations
+              </Link>{" "}
+              to show it to every member here.
+            </p>
+          ) : (
+            <p className="text-muted-foreground mt-2 max-w-xl mx-auto">
+              Ask a club admin to set up play widgets under Integrations.
+            </p>
+          )}
+        </Card>
+      )}
+    </DashboardShell>
   );
 }

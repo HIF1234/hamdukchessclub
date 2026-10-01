@@ -114,7 +114,9 @@ export const createChessEmbed = createServerFn({ method: "POST" })
   .inputValidator((d) =>
     z
       .object({
-        kind: z.enum(["board", "puzzle", "leaderboard", "analysis"]),
+        // Must match EMBED_KINDS on the platform (play.chess.hamduk.com.ng's /embed/{kind}/{token}
+        // route only knows these four); it rejects anything else with a 400.
+        kind: z.enum(["board", "puzzle", "leaderboard", "game"]),
         label: z.string().trim().min(2).max(80),
         config: z.record(z.string(), z.any()).default({}),
         ttl_hours: z.number().int().min(1).max(8760).default(720),

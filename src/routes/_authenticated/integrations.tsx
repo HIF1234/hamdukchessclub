@@ -54,7 +54,7 @@ function IntegrationsPage() {
   const { data: embeds } = useQuery({ queryKey: ["hamduk", "embeds"], queryFn: () => loadEmbeds() });
 
   const [label, setLabel] = useState("");
-  const [kind, setKind] = useState<"board" | "puzzle" | "leaderboard" | "analysis">("puzzle");
+  const [kind, setKind] = useState<"board" | "puzzle" | "leaderboard" | "game">("puzzle");
   const [hookUrl, setHookUrl] = useState("");
   const [hookEvents, setHookEvents] = useState<string[]>(EVENT_OPTIONS);
 
@@ -227,7 +227,7 @@ function IntegrationsPage() {
                     <Label htmlFor="embed-kind">Kind</Label>
                     <Select value={kind} onValueChange={(value) => setKind(value as typeof kind)}>
                       <SelectTrigger id="embed-kind"><SelectValue /></SelectTrigger>
-                      <SelectContent><SelectItem value="puzzle">Puzzle</SelectItem><SelectItem value="board">Board</SelectItem><SelectItem value="leaderboard">Leaderboard</SelectItem><SelectItem value="analysis">Analysis</SelectItem></SelectContent>
+                      <SelectContent><SelectItem value="puzzle">Puzzle</SelectItem><SelectItem value="board">Board</SelectItem><SelectItem value="leaderboard">Leaderboard</SelectItem><SelectItem value="game">Live game</SelectItem></SelectContent>
                     </Select>
                   </div>
                   <div className="flex items-end">

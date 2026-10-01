@@ -34,3 +34,5 @@ dist-ssr
 # Secrets -- never commit (previously tracked by mistake; untracked below)
 .env
 .env.*
+.vercel
+.env*

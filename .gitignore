@@ -30,3 +30,7 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Secrets -- never commit (previously tracked by mistake; untracked below)
+.env
+.env.*

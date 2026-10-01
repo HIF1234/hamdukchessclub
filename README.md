@@ -936,25 +936,18 @@ That is every feature. The full system. Ready to talk about how to build it when
 
 this is hamduk chess Club its not a public facing it strsight up login no landing page, apart from auth emails sent via supabase other emails are sent via resend, payment integration we use paystack, for the chess board needed in classroom dont build from scratch we plug in a chess third party app api, same as puzzles or anything that seems like a chess app gotten feature we'll plug that in after project building has started, calendar is google calender or ical, for 2fa use the totp and ensure u add qr code and code auth so that auth app can work, ensure to add supabase so that all data are dynamic no static data or hard coded data read the existing schema and run migrations needed for smooth running, use redis cache for caching and smooth rendering,. Finally this is a large project so store all the features listed in the attached in your memory so that u can continue  building the remaining features once done with some
 
-This project was built with [Lovable](https://lovable.dev).
+**Live app**: https://club.chess.hamduk.com.ng
 
-**Live app**: https://hamdukchessclub.lovable.app
-
-## Build with Lovable
-
-Continue developing this project in the [Lovable editor](https://lovable.dev/projects/c19a82c7-095b-4848-a08f-a3e744809d5a).
-
-- **Ship faster**: describe what you want to build and Lovable handles the code.
-- **Stay in sync**: every change made in Lovable is committed straight to this repository.
-- **Full ownership**: this code is yours. Push to `main` on GitHub and your changes sync back into Lovable, ready for your next prompt.
+Runs on the same Supabase project as play.chess.hamduk.com.ng, in its own `club` schema --
+a club member's account is the same `auth.users` row a play.chess player uses.
 
 ## Development
 
-Prefer working locally? You need Node.js and npm — [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating).
+You need Node.js (or Bun) — [install Bun](https://bun.sh) or [Node via nvm](https://github.com/nvm-sh/nvm#installing-and-updating).
 
 ```sh
-git clone <this-repository-url>
-cd <repository-name>
-npm i
-npm run dev
+git clone https://github.com/HIF1234/hamdukchessclub.git
+cd hamdukchessclub
+bun install
+bun run dev
 ```

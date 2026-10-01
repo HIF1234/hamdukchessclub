@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
@@ -10,6 +11,7 @@ import {
   listMembershipRequests,
   decideMembershipRequest,
 } from "@/lib/organizations/organizations.functions";
+import { listMembers, listGuardianLinks, linkGuardian, unlinkGuardian } from "@/lib/admin/management.functions";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -76,6 +78,33 @@ function MyOrganizationPage() {
     onSuccess: () => {
       toast.success("Request updated");
       void qc.invalidateQueries({ queryKey: ["org-membership-requests"] });
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
+  const fetchMembers = useServerFn(listMembers);
+  const { data: members } = useQuery({ queryKey: ["members"], queryFn: () => fetchMembers(), enabled: !!settings });
+  const fetchLinks = useServerFn(listGuardianLinks);
+  const { data: links } = useQuery({ queryKey: ["guardian-links"], queryFn: () => fetchLinks(), enabled: !!settings });
+  const [guardianId, setGuardianId] = useState("");
+  const [childId, setChildId] = useState("");
+  const link = useServerFn(linkGuardian);
+  const linkMut = useMutation({
+    mutationFn: () => link({ data: { guardian_user_id: guardianId, child_user_id: childId } }),
+    onSuccess: () => {
+      toast.success("Linked");
+      setGuardianId("");
+      setChildId("");
+      void qc.invalidateQueries({ queryKey: ["guardian-links"] });
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+  const unlink = useServerFn(unlinkGuardian);
+  const unlinkMut = useMutation({
+    mutationFn: (link_id: string) => unlink({ data: { link_id } }),
+    onSuccess: () => {
+      toast.success("Unlinked");
+      void qc.invalidateQueries({ queryKey: ["guardian-links"] });
     },
     onError: (e: Error) => toast.error(e.message),
   });
@@ -229,6 +258,76 @@ function MyOrganizationPage() {
           </div>
         </Card>
       )}
+
+      <Card className="p-6 mt-6">
+        <h2 className="font-medium mb-1">Guardian links</h2>
+        <p className="text-sm text-muted-foreground mb-4">
+          Link a parent/guardian member to the child they should see activity for. Both people
+          must already be members of this organization.
+        </p>
+        <form
+          className="flex flex-wrap items-end gap-3"
+          onSubmit={(e) => {
+            e.preventDefault();
+            if (guardianId && childId) linkMut.mutate();
+          }}
+        >
+          <div className="flex-1 min-w-48">
+            <label className="text-xs text-muted-foreground">Guardian</label>
+            <Select value={guardianId} onValueChange={setGuardianId}>
+              <SelectTrigger>
+                <SelectValue placeholder="Select member…" />
+              </SelectTrigger>
+              <SelectContent>
+                {(members ?? []).map((m) => (
+                  <SelectItem key={m.id} value={m.id}>
+                    {m.full_name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="flex-1 min-w-48">
+            <label className="text-xs text-muted-foreground">Child</label>
+            <Select value={childId} onValueChange={setChildId}>
+              <SelectTrigger>
+                <SelectValue placeholder="Select member…" />
+              </SelectTrigger>
+              <SelectContent>
+                {(members ?? []).map((m) => (
+                  <SelectItem key={m.id} value={m.id}>
+                    {m.full_name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          <Button type="submit" disabled={linkMut.isPending || !guardianId || !childId}>
+            Link
+          </Button>
+        </form>
+
+        {(links ?? []).length > 0 && (
+          <ul className="mt-5 space-y-2 text-sm">
+            {links!.map((l) => (
+              <li key={l.id} className="flex items-center justify-between rounded-md bg-secondary/40 px-3 py-2">
+                <span>
+                  <span className="font-medium">{l.guardian_name}</span> is guardian of{" "}
+                  <span className="font-medium">{l.child_name}</span>
+                </span>
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  disabled={unlinkMut.isPending}
+                  onClick={() => unlinkMut.mutate(l.id)}
+                >
+                  Unlink
+                </Button>
+              </li>
+            ))}
+          </ul>
+        )}
+      </Card>
     </DashboardShell>
   );
 }

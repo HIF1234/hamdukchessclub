@@ -1,4 +1,4 @@
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
@@ -26,8 +26,9 @@ import {
   requestAccountDeletion,
 } from "@/lib/profile/profile.functions";
 import { listMyMemberships, joinOrganizationByCode } from "@/lib/organizations/organizations.functions";
+import { listMyChildren } from "@/lib/family/family.functions";
 import { toast } from "sonner";
-import { Download, Trash2, ShieldCheck, Bell, KeyRound, Mail, History, Building2 } from "lucide-react";
+import { Download, Trash2, ShieldCheck, Bell, KeyRound, Mail, History, Building2, Users } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/settings")({
   head: () => ({ meta: [{ title: "Settings — Hamduk Chess Club" }] }),
@@ -60,6 +61,9 @@ function SettingsPage() {
     },
     onError: (e: Error) => toast.error(e.message),
   });
+
+  const fetchChildren = useServerFn(listMyChildren);
+  const { data: children } = useQuery({ queryKey: ["my-children"], queryFn: () => fetchChildren() });
 
   const [form, setForm] = useState({
     full_name: "",
@@ -224,6 +228,25 @@ function SettingsPage() {
         </Card>
 
         <div className="space-y-6">
+          {(children ?? []).length > 0 && (
+            <Card className="p-6">
+              <div className="flex items-start gap-3">
+                <Users className="size-5 text-primary mt-0.5" />
+                <div className="flex-1">
+                  <h3 className="font-display text-lg">Family</h3>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    You're linked as a guardian for {children!.length === 1 ? "one child" : `${children!.length} children`}.
+                  </p>
+                  <Link to="/family">
+                    <Button size="sm" variant="outline" className="mt-3">
+                      View classes &amp; tournaments
+                    </Button>
+                  </Link>
+                </div>
+              </div>
+            </Card>
+          )}
+
           <Card className="p-6">
             <div className="flex items-start gap-3">
               <Building2 className="size-5 text-primary mt-0.5" />

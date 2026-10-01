@@ -260,6 +260,48 @@ export type Database = {
         }
         Relationships: []
       }
+      guardian_links: {
+        Row: {
+          child_user_id: string
+          created_at: string
+          created_by: string | null
+          guardian_user_id: string
+          id: string
+          organization_id: string
+        }
+        Insert: {
+          child_user_id: string
+          created_at?: string
+          created_by?: string | null
+          guardian_user_id: string
+          id?: string
+          organization_id: string
+        }
+        Update: {
+          child_user_id?: string
+          created_at?: string
+          created_by?: string | null
+          guardian_user_id?: string
+          id?: string
+          organization_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "guardian_links_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "guardian_links_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations_public"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       login_events: {
         Row: {
           browser: string | null
@@ -433,6 +475,7 @@ export type Database = {
           contact_phone: string | null
           created_at: string
           id: string
+          is_default: boolean
           is_suspended: boolean | null
           join_code: string | null
           join_policy: string
@@ -457,6 +500,7 @@ export type Database = {
           contact_phone?: string | null
           created_at?: string
           id?: string
+          is_default?: boolean
           is_suspended?: boolean | null
           join_code?: string | null
           join_policy?: string
@@ -481,6 +525,7 @@ export type Database = {
           contact_phone?: string | null
           created_at?: string
           id?: string
+          is_default?: boolean
           is_suspended?: boolean | null
           join_code?: string | null
           join_policy?: string
@@ -1079,6 +1124,10 @@ export type Database = {
         Args: { _organization_id: string; _user_id: string }
         Returns: boolean
       }
+      is_org_privileged: {
+        Args: { _org_id: string; _roles: string[] }
+        Returns: boolean
+      }
       log_audit_event: {
         Args: {
           _action: string
@@ -1130,7 +1179,7 @@ export type Database = {
 
 type DatabaseWithoutInternals = Omit<Database, "__InternalSupabase">
 
-type DefaultSchema = DatabaseWithoutInternals[Extract<keyof Database, "club">]
+type DefaultSchema = DatabaseWithoutInternals["club"]
 
 export type Tables<
   DefaultSchemaTableNameOrOptions extends

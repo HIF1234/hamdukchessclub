@@ -70,6 +70,79 @@ export const setMemberRole = createServerFn({ method: "POST" })
     return { ok: true };
   });
 
+// GUARDIAN LINKS (vision §11) -- org admin links a guardian to the child/children they can
+// see activity for. No self-service "claim a child" flow: only the org owner creates these.
+async function myOwnedOrgId(userId: string): Promise<string> {
+  const { data: org } = await supabaseAdmin.from("organizations").select("id").eq("owner_user_id", userId).maybeSingle();
+  if (!org) throw new Error("You don't own an organization.");
+  return org.id;
+}
+
+export const listGuardianLinks = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    const orgId = await myOwnedOrgId(context.userId);
+    const { data, error } = await supabaseAdmin
+      .from("guardian_links")
+      .select("id, guardian_user_id, child_user_id, created_at")
+      .eq("organization_id", orgId)
+      .order("created_at", { ascending: false });
+    if (error) fail("listGuardianLinks", error);
+    const ids = Array.from(new Set((data ?? []).flatMap((l) => [l.guardian_user_id, l.child_user_id])));
+    let names: Record<string, string> = {};
+    if (ids.length) {
+      const { data: profs } = await supabaseAdmin.from("profiles").select("id, full_name").in("id", ids);
+      for (const p of profs ?? []) names[p.id] = p.full_name;
+    }
+    return (data ?? []).map((l) => ({
+      id: l.id,
+      created_at: l.created_at,
+      guardian_user_id: l.guardian_user_id,
+      guardian_name: names[l.guardian_user_id] ?? "Unknown",
+      child_user_id: l.child_user_id,
+      child_name: names[l.child_user_id] ?? "Unknown",
+    }));
+  });
+
+export const linkGuardian = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d) => z.object({ guardian_user_id: z.string().uuid(), child_user_id: z.string().uuid() }).parse(d))
+  .handler(async ({ context, data }) => {
+    if (data.guardian_user_id === data.child_user_id) throw new Error("A guardian can't be linked to themselves.");
+    const orgId = await myOwnedOrgId(context.userId);
+    const { data: memberships } = await supabaseAdmin
+      .from("organization_memberships")
+      .select("user_id")
+      .eq("organization_id", orgId)
+      .in("user_id", [data.guardian_user_id, data.child_user_id]);
+    if ((memberships ?? []).length !== 2) throw new Error("Both people must be members of your organization.");
+    const { error } = await supabaseAdmin.from("guardian_links").insert({
+      organization_id: orgId,
+      guardian_user_id: data.guardian_user_id,
+      child_user_id: data.child_user_id,
+      created_by: context.userId,
+    });
+    if (error) {
+      if (error.message.includes("duplicate")) throw new Error("That link already exists.");
+      fail("linkGuardian", error);
+    }
+    return { ok: true };
+  });
+
+export const unlinkGuardian = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d) => z.object({ link_id: z.string().uuid() }).parse(d))
+  .handler(async ({ context, data }) => {
+    const orgId = await myOwnedOrgId(context.userId);
+    const { error } = await supabaseAdmin
+      .from("guardian_links")
+      .delete()
+      .eq("id", data.link_id)
+      .eq("organization_id", orgId);
+    if (error) fail("unlinkGuardian", error);
+    return { ok: true };
+  });
+
 export const updateMemberState = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d) => z.object({ user_id: z.string().uuid(), account_state: z.enum(["active", "suspended", "expired"]) }).parse(d))

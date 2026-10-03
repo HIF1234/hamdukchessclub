@@ -10,7 +10,8 @@ import { getDashboardStats, type RoleStats } from "@/lib/dashboard/dashboard.fun
 import { listClasses, listTournaments } from "@/lib/admin/management.functions";
 import { listAnnouncements } from "@/lib/announcements/announcements.functions";
 import { getMyChessProfile } from "@/lib/hamduk/hamduk.functions";
-import { Trophy, Users, Building2, CreditCard, GraduationCap, BookOpen, Sparkles, KeyRound, UserCheck, Megaphone } from "lucide-react";
+import { listMyChildren, getChildOverview } from "@/lib/family/family.functions";
+import { Trophy, Users, Building2, CreditCard, GraduationCap, BookOpen, Sparkles, KeyRound, UserCheck, Megaphone, Baby, CheckCircle2 } from "lucide-react";
 import { Link } from "@tanstack/react-router";
 
 export const Route = createFileRoute("/_authenticated/dashboard")({
@@ -34,12 +35,17 @@ function Dashboard() {
   const fetchAnnouncements = useServerFn(listAnnouncements);
   const { data: announcements } = useQuery({ queryKey: ["announcements"], queryFn: () => fetchAnnouncements(), staleTime: 30_000 });
 
+  const fetchChildren = useServerFn(listMyChildren);
+  const { data: children } = useQuery({ queryKey: ["my-children"], queryFn: () => fetchChildren(), staleTime: 30_000 });
+
   const primaryRole = roles.includes("super_admin")
     ? "super_admin"
     : roles.includes("org_admin")
     ? "org_admin"
     : roles.includes("tutor")
     ? "tutor"
+    : (children ?? []).length > 0
+    ? "parent"
     : "member";
 
   const firstName = profile?.full_name?.split(" ")[0] ?? "player";
@@ -58,6 +64,7 @@ function Dashboard() {
       {primaryRole === "super_admin" && <SuperAdminView stats={stats} />}
       {primaryRole === "org_admin" && <OrgAdminView stats={stats} classes={classes} tournaments={tournaments} />}
       {primaryRole === "tutor" && <TutorView stats={stats} classes={classes} myId={profile?.id} />}
+      {primaryRole === "parent" && <ParentView children={children ?? []} />}
       {primaryRole === "member" && <MemberView classes={classes} tournaments={tournaments} />}
 
       <AnnouncementsCard announcements={announcements} />
@@ -77,6 +84,8 @@ function tagline(role: string) {
       return "Your organization's home base — manage members, classes, and join requests.";
     case "tutor":
       return "Your teaching dashboard — upcoming classes, students, and resources.";
+    case "parent":
+      return "Your children's classes, tournaments, and attendance — all in one place.";
     default:
       return "Classes, tournaments, ratings, and your community of players — all in one place.";
   }
@@ -366,6 +375,101 @@ function TutorView({
         )}
       </Card>
     </>
+  );
+}
+
+function ParentView({
+  children,
+}: {
+  children: { child_user_id: string; full_name: string; organization_name: string; account_state: string | null }[];
+}) {
+  return (
+    <>
+      <div className="grid sm:grid-cols-3 gap-4">
+        <StatCard label="Children" value={String(children.length)} hint={children.length === 1 ? "Linked to your account" : "Linked to your account"} icon={Baby} />
+        <StatCard
+          label="Active"
+          value={String(children.filter((c) => c.account_state === "active").length)}
+          hint="Membership in good standing"
+          icon={CheckCircle2}
+        />
+        <StatCard
+          label="Organizations"
+          value={String(new Set(children.map((c) => c.organization_name)).size)}
+          hint="Schools and clubs your children attend"
+          icon={Building2}
+        />
+      </div>
+
+      <div className="mt-6 space-y-4">
+        {children.map((child) => (
+          <ParentChildCard key={child.child_user_id} childUserId={child.child_user_id} name={child.full_name} orgName={child.organization_name} accountState={child.account_state} />
+        ))}
+      </div>
+
+      <Card className="p-6 mt-6">
+        <h3 className="font-display text-xl mb-2">Need the full picture?</h3>
+        <p className="text-sm text-muted-foreground">
+          Attendance history, every upcoming class and tournament, and per-child detail live on the Family page.
+        </p>
+        <div className="mt-4">
+          <Link to="/family"><Button variant="secondary" size="sm">Go to Family</Button></Link>
+        </div>
+      </Card>
+    </>
+  );
+}
+
+function ParentChildCard({
+  childUserId,
+  name,
+  orgName,
+  accountState,
+}: {
+  childUserId: string;
+  name: string;
+  orgName: string;
+  accountState: string | null;
+}) {
+  const fetchOverview = useServerFn(getChildOverview);
+  const { data: overview, isLoading } = useQuery({
+    queryKey: ["child-overview", childUserId],
+    queryFn: () => fetchOverview({ data: { child_user_id: childUserId } }),
+    staleTime: 30_000,
+  });
+
+  const nextClass = overview?.upcoming_classes?.[0];
+  const nextTournament = overview?.upcoming_tournaments?.[0];
+
+  return (
+    <Card className="p-6">
+      <div className="flex items-center justify-between flex-wrap gap-2">
+        <div>
+          <h3 className="font-display text-xl">{name}</h3>
+          <p className="text-sm text-muted-foreground">{orgName}</p>
+        </div>
+        {accountState && <Badge variant={accountState === "active" ? "default" : "secondary"}>{accountState}</Badge>}
+      </div>
+
+      {isLoading && <p className="mt-3 text-sm text-muted-foreground">Loading…</p>}
+
+      {overview && (
+        <div className="mt-4 grid sm:grid-cols-3 gap-3">
+          <div className="rounded-md bg-secondary/40 px-3 py-2">
+            <p className="text-xs uppercase tracking-wider text-muted-foreground">Next class</p>
+            <p className="text-sm mt-1">{nextClass ? `${nextClass.title} · ${formatWhen(nextClass.starts_at)}` : "Nothing scheduled"}</p>
+          </div>
+          <div className="rounded-md bg-secondary/40 px-3 py-2">
+            <p className="text-xs uppercase tracking-wider text-muted-foreground">Next tournament</p>
+            <p className="text-sm mt-1">{nextTournament ? `${nextTournament.name} · ${formatWhen(nextTournament.starts_at)}` : "None registered"}</p>
+          </div>
+          <div className="rounded-md bg-secondary/40 px-3 py-2">
+            <p className="text-xs uppercase tracking-wider text-muted-foreground">Attendance</p>
+            <p className="text-sm mt-1">{overview.classes_attended} / {overview.classes_total} classes</p>
+          </div>
+        </div>
+      )}
+    </Card>
   );
 }
 

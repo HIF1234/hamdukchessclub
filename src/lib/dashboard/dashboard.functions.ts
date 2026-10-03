@@ -11,7 +11,12 @@ export type RoleStats = {
   myOrgMembers?: number;
   myOrgClasses?: number;
   pendingRequests?: { id: string; full_name: string; joined_at: string }[];
-  tutor?: { classesThisWeek: number; students: number };
+  tutor?: {
+    classesThisWeek: number;
+    students: number;
+    needsAttendance: { id: string; title: string; starts_at: string }[];
+    myStudents: { id: string; full_name: string; last_session_at: string }[];
+  };
 };
 
 export const getDashboardStats = createServerFn({ method: "GET" })
@@ -103,7 +108,42 @@ export const getDashboardStats = createServerFn({ method: "GET" })
         const { data: enrollments } = await supabase.from("class_enrollments").select("user_id").in("class_id", classIds);
         students = new Set((enrollments ?? []).map((e) => e.user_id)).size;
       }
-      out.tutor = { classesThisWeek: classes?.length ?? 0, students };
+
+      // Past classes the tutor hasn't marked attendance for yet.
+      const { data: needsAttendance } = await supabase
+        .from("classes")
+        .select("id, title, starts_at")
+        .eq("tutor_id", userId)
+        .lt("starts_at", new Date().toISOString())
+        .is("attendance_taken_at", null)
+        .order("starts_at", { ascending: false })
+        .limit(10);
+
+      // Every student across all of this tutor's classes (not just upcoming), with the date
+      // of their most recent session, so a tutor can see who they haven't taught in a while.
+      const { data: allMyClasses } = await supabase.from("classes").select("id, starts_at").eq("tutor_id", userId);
+      const startsById: Record<string, string> = {};
+      for (const c of allMyClasses ?? []) startsById[c.id] = c.starts_at;
+      const allClassIds = Object.keys(startsById);
+      let myStudents: { id: string; full_name: string; last_session_at: string }[] = [];
+      if (allClassIds.length) {
+        const { data: allEnrollments } = await supabase.from("class_enrollments").select("user_id, class_id").in("class_id", allClassIds);
+        const lastByUser: Record<string, string> = {};
+        for (const e of allEnrollments ?? []) {
+          const d = startsById[e.class_id];
+          if (!lastByUser[e.user_id] || new Date(d) > new Date(lastByUser[e.user_id])) lastByUser[e.user_id] = d;
+        }
+        const studentIds = Object.keys(lastByUser);
+        if (studentIds.length) {
+          const { data: profs } = await supabaseAdmin.from("profiles").select("id, full_name").in("id", studentIds);
+          myStudents = (profs ?? [])
+            .map((p) => ({ id: p.id, full_name: p.full_name, last_session_at: lastByUser[p.id] }))
+            .sort((a, b) => new Date(b.last_session_at).getTime() - new Date(a.last_session_at).getTime())
+            .slice(0, 10);
+        }
+      }
+
+      out.tutor = { classesThisWeek: classes?.length ?? 0, students, needsAttendance: needsAttendance ?? [], myStudents };
     }
 
     return out;

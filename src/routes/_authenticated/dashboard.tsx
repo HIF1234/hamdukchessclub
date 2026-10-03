@@ -110,6 +110,12 @@ function upcoming<T extends { starts_at: string; status: string }>(items: T[] | 
     .slice(0, n);
 }
 
+function isToday(iso: string) {
+  const d = new Date(iso);
+  const now = new Date();
+  return d.getFullYear() === now.getFullYear() && d.getMonth() === now.getMonth() && d.getDate() === now.getDate();
+}
+
 function StatCard({ label, value, hint, icon: Icon }: { label: string; value: string; hint?: string; icon?: React.ComponentType<{ className?: string }> }) {
   return (
     <Card className="p-6 relative overflow-hidden">
@@ -346,24 +352,57 @@ function TutorView({
   classes?: { id: string; title: string; starts_at: string; status: string; tutor_id: string | null }[];
   myId?: string;
 }) {
-  const myClasses = upcoming((classes ?? []).filter((c) => c.tutor_id === myId), ["scheduled", "in_progress"], 5);
+  const myClasses = (classes ?? []).filter((c) => c.tutor_id === myId);
+  const todayClasses = upcoming(myClasses, ["scheduled", "in_progress"], 50).filter((c) => isToday(c.starts_at));
+  const laterClasses = upcoming(myClasses, ["scheduled", "in_progress"], 50).filter((c) => !isToday(c.starts_at)).slice(0, 5);
+  const needsAttendance = stats?.tutor?.needsAttendance ?? [];
+  const myStudents = stats?.tutor?.myStudents ?? [];
+
   return (
     <>
       <div className="grid sm:grid-cols-3 gap-4">
         <StatCard label="Active classes" value={String(stats?.tutor?.classesThisWeek ?? 0)} icon={BookOpen} />
         <StatCard label="Students" value={String(stats?.tutor?.students ?? 0)} icon={GraduationCap} />
-        <StatCard label="Teaching tools" value="Ready" hint="Attendance and notes" icon={Sparkles} />
+        <StatCard
+          label="Needs attendance"
+          value={String(needsAttendance.length)}
+          hint={needsAttendance.length > 0 ? "Past classes awaiting attendance" : "All caught up"}
+          icon={CheckCircle2}
+        />
       </div>
+
       <Card className="p-6 mt-6">
         <div className="flex items-center gap-2 mb-3">
           <BookOpen className="h-4 w-4 text-primary/70" />
-          <h3 className="font-display text-xl">Your upcoming classes</h3>
+          <h3 className="font-display text-xl">Today's schedule</h3>
         </div>
-        {myClasses.length === 0 ? (
-          <p className="text-sm text-muted-foreground">Nothing scheduled. New classes you teach will show up here.</p>
+        {todayClasses.length === 0 ? (
+          <p className="text-sm text-muted-foreground">Nothing scheduled for today.</p>
         ) : (
           <ul className="space-y-2">
-            {myClasses.map((c) => (
+            {todayClasses.map((c) => (
+              <li key={c.id} className="flex items-center justify-between rounded-md bg-secondary/40 px-3 py-2 text-sm">
+                <span>{c.title}</span>
+                <div className="flex items-center gap-3">
+                  <span className="text-xs text-muted-foreground">{formatWhen(c.starts_at)}</span>
+                  <Link to="/classes/$classId" params={{ classId: c.id }}>
+                    <Button size="sm">Start class</Button>
+                  </Link>
+                </div>
+              </li>
+            ))}
+          </ul>
+        )}
+      </Card>
+
+      {needsAttendance.length > 0 && (
+        <Card className="p-6 mt-6">
+          <div className="flex items-center gap-2 mb-3">
+            <CheckCircle2 className="h-4 w-4 text-primary/70" />
+            <h3 className="font-display text-xl">Needs attendance</h3>
+          </div>
+          <ul className="space-y-2">
+            {needsAttendance.map((c) => (
               <li key={c.id}>
                 <Link to="/classes/$classId" params={{ classId: c.id }} className="flex items-center justify-between rounded-md bg-secondary/40 px-3 py-2 text-sm hover:bg-secondary/60">
                   <span>{c.title}</span>
@@ -372,8 +411,50 @@ function TutorView({
               </li>
             ))}
           </ul>
-        )}
-      </Card>
+        </Card>
+      )}
+
+      <div className="grid lg:grid-cols-2 gap-4 mt-6">
+        <Card className="p-6">
+          <div className="flex items-center gap-2 mb-3">
+            <BookOpen className="h-4 w-4 text-primary/70" />
+            <h3 className="font-display text-xl">Coming up</h3>
+          </div>
+          {laterClasses.length === 0 ? (
+            <p className="text-sm text-muted-foreground">Nothing else scheduled. New classes you teach will show up here.</p>
+          ) : (
+            <ul className="space-y-2">
+              {laterClasses.map((c) => (
+                <li key={c.id}>
+                  <Link to="/classes/$classId" params={{ classId: c.id }} className="flex items-center justify-between rounded-md bg-secondary/40 px-3 py-2 text-sm hover:bg-secondary/60">
+                    <span>{c.title}</span>
+                    <span className="text-xs text-muted-foreground">{formatWhen(c.starts_at)}</span>
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          )}
+        </Card>
+
+        <Card className="p-6">
+          <div className="flex items-center gap-2 mb-3">
+            <GraduationCap className="h-4 w-4 text-primary/70" />
+            <h3 className="font-display text-xl">Your students</h3>
+          </div>
+          {myStudents.length === 0 ? (
+            <p className="text-sm text-muted-foreground">Students you've taught will show up here.</p>
+          ) : (
+            <ul className="space-y-2">
+              {myStudents.map((s) => (
+                <li key={s.id} className="flex items-center justify-between rounded-md bg-secondary/40 px-3 py-2 text-sm">
+                  <span>{s.full_name}</span>
+                  <span className="text-xs text-muted-foreground">Last session {new Date(s.last_session_at).toLocaleDateString()}</span>
+                </li>
+              ))}
+            </ul>
+          )}
+        </Card>
+      </div>
     </>
   );
 }

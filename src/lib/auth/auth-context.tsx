@@ -56,8 +56,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     // Set up listener FIRST
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, newSession) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, newSession) => {
       setSession(newSession);
+      // TOKEN_REFRESHED fires automatically and repeatedly (periodic renewal, and again on
+      // every tab refocus) -- nothing about the user/profile/roles actually changed, so
+      // invalidating every query on the page for it was pure overhead. On a page with many
+      // concurrent queries (e.g. the dashboard's per-child cards) that overhead compounds into
+      // a real memory/crash problem over a long session. Only do the full reload for events
+      // that can actually change who the user is.
+      if (event === "TOKEN_REFRESHED") return;
       if (newSession?.user) {
         // Defer DB call to avoid blocking the auth callback
         setTimeout(() => {

@@ -2,6 +2,7 @@ import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
+import { requireAdminOrgId, isOrgAdminOf } from "@/lib/auth/org-access.server";
 
 function fail(scope: string, error: unknown): never {
   console.error(`[admin.${scope}]`, error);
@@ -13,7 +14,10 @@ async function getRoles(supabase: any, userId: string) {
   return (data ?? []).map((r: any) => r.role as string);
 }
 
-const ORG_ROLES = ["student", "tutor", "assistant_coach", "parent", "staff", "tournament_manager", "equipment_manager"] as const;
+// 'org_admin' is last and handled separately in setMemberRole below: granting it also grants
+// the global org_admin app_role, since several other checks in this file (and nav visibility)
+// still key off that rather than role_in_org -- see the M0 multi-admin note there.
+const ORG_ROLES = ["student", "tutor", "assistant_coach", "parent", "staff", "tournament_manager", "equipment_manager", "org_admin"] as const;
 export type OrgRole = (typeof ORG_ROLES)[number];
 
 // MEMBERS
@@ -31,12 +35,16 @@ export const listMembers = createServerFn({ method: "GET" })
     // same member could hold different roles at different organizations.
     let roleByUserId: Record<string, string> = {};
     if (!roles.includes("super_admin")) {
-      const { data: org } = await supabaseAdmin.from("organizations").select("id").eq("owner_user_id", userId).maybeSingle();
-      if (!org) return [];
+      let orgId: string;
+      try {
+        orgId = await requireAdminOrgId(userId);
+      } catch {
+        return [];
+      }
       const { data: memberships, error: membershipError } = await supabase
         .from("organization_memberships")
         .select("user_id, role_in_org")
-        .eq("organization_id", org.id);
+        .eq("organization_id", orgId);
       if (membershipError) fail("listMembers.memberships", membershipError);
       memberIds = (memberships ?? []).map((membership) => membership.user_id);
       for (const m of memberships ?? []) roleByUserId[m.user_id] = m.role_in_org;
@@ -58,25 +66,30 @@ export const setMemberRole = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d) => z.object({ user_id: z.string().uuid(), role_in_org: z.enum(ORG_ROLES) }).parse(d))
   .handler(async ({ context, data }) => {
-    const { userId } = context;
-    const { data: org } = await supabaseAdmin.from("organizations").select("id").eq("owner_user_id", userId).maybeSingle();
-    if (!org) throw new Error("You don't own an organization.");
+    const orgId = await requireAdminOrgId(context.userId);
     const { error } = await supabaseAdmin
       .from("organization_memberships")
       .update({ role_in_org: data.role_in_org })
-      .eq("organization_id", org.id)
+      .eq("organization_id", orgId)
       .eq("user_id", data.user_id);
     if (error) fail("setMemberRole", error);
+    // Bridges the two admin systems (M0 multi-admin): several checks in this file and the nav
+    // still key off the global org_admin app_role rather than role_in_org, so a promotion here
+    // grants that too. Demoting away from org_admin deliberately does NOT revoke it -- the
+    // org-scoped access is already cut via role_in_org/is_org_privileged either way, and
+    // auto-revoking a global role from here would be an easy place to get wrong.
+    if (data.role_in_org === "org_admin") {
+      const { error: roleErr } = await supabaseAdmin
+        .from("user_roles")
+        .upsert({ user_id: data.user_id, role: "org_admin" }, { onConflict: "user_id,role" });
+      if (roleErr) fail("setMemberRole.grantGlobalRole", roleErr);
+    }
     return { ok: true };
   });
 
 // GUARDIAN LINKS (vision §11) -- org admin links a guardian to the child/children they can
-// see activity for. No self-service "claim a child" flow: only the org owner creates these.
-async function myOwnedOrgId(userId: string): Promise<string> {
-  const { data: org } = await supabaseAdmin.from("organizations").select("id").eq("owner_user_id", userId).maybeSingle();
-  if (!org) throw new Error("You don't own an organization.");
-  return org.id;
-}
+// see activity for. No self-service "claim a child" flow: only an org admin creates these.
+const myOwnedOrgId = requireAdminOrgId;
 
 export const listGuardianLinks = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
@@ -151,8 +164,13 @@ export const updateMemberState = createServerFn({ method: "POST" })
     const roles = await getRoles(supabase, userId);
     if (!roles.includes("super_admin") && !roles.includes("org_admin")) throw new Error("Forbidden");
     if (roles.includes("org_admin") && !roles.includes("super_admin")) {
-      const { data: org } = await supabaseAdmin.from("organizations").select("id").eq("owner_user_id", userId).maybeSingle();
-      const { data: membership } = org ? await supabase.from("organization_memberships").select("id").eq("organization_id", org.id).eq("user_id", data.user_id).maybeSingle() : { data: null };
+      let orgId: string | null = null;
+      try {
+        orgId = await requireAdminOrgId(userId);
+      } catch {
+        /* falls through to the membership check below, which fails with orgId null */
+      }
+      const { data: membership } = orgId ? await supabase.from("organization_memberships").select("id").eq("organization_id", orgId).eq("user_id", data.user_id).maybeSingle() : { data: null };
       if (!membership) throw new Error("You can only manage members in your organization.");
     }
     const { error } = await supabaseAdmin.from("profiles").update({ account_state: data.account_state }).eq("id", data.user_id);
@@ -273,14 +291,7 @@ async function assertCanManageClass(supabase: any, userId: string, classId: stri
     .maybeSingle();
   if (!cls) throw new Error("Class not found");
   if (cls.tutor_id === userId || cls.created_by === userId) return;
-  if (cls.organization_id) {
-    const { data: org } = await supabaseAdmin
-      .from("organizations")
-      .select("owner_user_id")
-      .eq("id", cls.organization_id)
-      .maybeSingle();
-    if (org?.owner_user_id === userId) return;
-  }
+  if (cls.organization_id && (await isOrgAdminOf(userId, cls.organization_id))) return;
   throw new Error("Forbidden");
 }
 
@@ -417,14 +428,7 @@ async function assertCanManageTournament(supabase: any, userId: string, tourname
     .maybeSingle();
   if (!tournament) throw new Error("Tournament not found");
   if (tournament.created_by === userId) return;
-  if (tournament.organization_id) {
-    const { data: org } = await supabaseAdmin
-      .from("organizations")
-      .select("owner_user_id")
-      .eq("id", tournament.organization_id)
-      .maybeSingle();
-    if (org?.owner_user_id === userId) return;
-  }
+  if (tournament.organization_id && (await isOrgAdminOf(userId, tournament.organization_id))) return;
   throw new Error("Forbidden");
 }
 

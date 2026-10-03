@@ -17,12 +17,12 @@ async function myEquipmentOrgId(userId: string): Promise<{ id: string; canManage
     .from("organization_memberships")
     .select("organization_id, role_in_org")
     .eq("user_id", userId)
-    .in("role_in_org", ["equipment_manager", "staff"])
+    .in("role_in_org", ["equipment_manager", "staff", "org_admin"])
     .eq("status", "approved")
     .limit(1)
     .maybeSingle();
   if (!membership) throw new Error("You don't manage equipment for any organization.");
-  return { id: membership.organization_id, canManage: membership.role_in_org === "equipment_manager" };
+  return { id: membership.organization_id, canManage: membership.role_in_org === "equipment_manager" || membership.role_in_org === "org_admin" };
 }
 
 /** Minimal roster for the "check out to" picker -- intentionally not the full listMembers

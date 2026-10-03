@@ -2,6 +2,7 @@ import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
+import { requireAdminOrgId } from "@/lib/auth/org-access.server";
 
 function fail(scope: string, error: unknown): never {
   console.error(`[organizations.${scope}]`, error);
@@ -13,12 +14,18 @@ async function getRoles(supabase: any, userId: string) {
   return (data ?? []).map((r: any) => r.role as string);
 }
 
-/** The org this user owns, or null. Super admins don't implicitly own one. */
+/** The org this user administers (owner, or an org_admin membership), or null. */
 async function myOwnedOrg(userId: string) {
+  let orgId: string;
+  try {
+    orgId = await requireAdminOrgId(userId);
+  } catch {
+    return null;
+  }
   const { data } = await supabaseAdmin
     .from("organizations")
     .select("id, name, join_code, join_policy")
-    .eq("owner_user_id", userId)
+    .eq("id", orgId)
     .maybeSingle();
   return data;
 }
@@ -70,7 +77,7 @@ export const regenerateJoinCode = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
     const org = await myOwnedOrg(context.userId);
-    if (!org) throw new Error("You don't own an organization.");
+    if (!org) throw new Error("You don't administer an organization.");
     const prefix = slugPrefix(org.name);
     for (let attempt = 0; attempt < 5; attempt++) {
       const code = `${prefix}-CHESS-${randomCode(4)}`;
@@ -93,7 +100,7 @@ export const setJoinPolicy = createServerFn({ method: "POST" })
   )
   .handler(async ({ context, data }) => {
     const org = await myOwnedOrg(context.userId);
-    if (!org) throw new Error("You don't own an organization.");
+    if (!org) throw new Error("You don't administer an organization.");
     const { error } = await supabaseAdmin
       .from("organizations")
       .update({ join_policy: data.join_policy })
@@ -129,7 +136,7 @@ export const decideMembershipRequest = createServerFn({ method: "POST" })
   .inputValidator((d) => z.object({ membership_id: z.string().uuid(), approve: z.boolean() }).parse(d))
   .handler(async ({ context, data }) => {
     const org = await myOwnedOrg(context.userId);
-    if (!org) throw new Error("You don't own an organization.");
+    if (!org) throw new Error("You don't administer an organization.");
     const { error } = await supabaseAdmin
       .from("organization_memberships")
       .update({

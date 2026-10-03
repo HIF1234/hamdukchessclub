@@ -18,6 +18,7 @@ const ORG_ROLE_LABEL: Record<OrgRole, string> = {
   staff: "Staff",
   tournament_manager: "Tournament manager",
   equipment_manager: "Equipment manager",
+  org_admin: "Organization admin",
 };
 
 export const Route = createFileRoute("/_authenticated/members")({

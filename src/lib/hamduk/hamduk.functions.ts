@@ -66,18 +66,25 @@ export const getMyChessProfile = createServerFn({ method: "GET" })
 
     return {
       ratings: ratings ?? [],
-      games: (games ?? []).map((g: any) => ({
-        game_id: g.id,
-        white: names[g.white_id] ?? "—",
-        black: names[g.black_id] ?? "—",
-        time_control: g.time_control,
-        variant: g.variant,
-        result: g.result,
-        end_reason: g.end_reason,
-        rated: g.rated,
-        moves: g.ply,
-        played_at: g.ended_at ?? g.created_at,
-      })),
+      games: (games ?? []).map((g: any) => {
+        const myColor: "white" | "black" = g.white_id === userId ? "white" : "black";
+        const myResult: "win" | "loss" | "draw" | null =
+          g.result === "1/2-1/2" ? "draw" : g.result === "1-0" ? (myColor === "white" ? "win" : "loss") : g.result === "0-1" ? (myColor === "black" ? "win" : "loss") : null;
+        return {
+          game_id: g.id,
+          white: names[g.white_id] ?? "—",
+          black: names[g.black_id] ?? "—",
+          time_control: g.time_control,
+          variant: g.variant,
+          result: g.result,
+          end_reason: g.end_reason,
+          rated: g.rated,
+          moves: g.ply,
+          played_at: g.ended_at ?? g.created_at,
+          my_color: myColor,
+          my_result: myResult,
+        };
+      }),
     };
   });
 

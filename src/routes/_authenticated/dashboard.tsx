@@ -564,6 +564,7 @@ function MemberView({
   const fetchChess = useServerFn(getMyChessProfile);
   const { data: chess } = useQuery({ queryKey: ["my-chess-profile"], queryFn: () => fetchChess(), staleTime: 30_000 });
   const topRating = chess?.ratings?.[0];
+  const recentGames = (chess?.games ?? []).slice(0, 5);
 
   const myClasses = upcoming(classes, ["scheduled", "in_progress"], 3);
   const myTournaments = upcoming(tournaments, ["registration_open", "in_progress"], 3);
@@ -580,7 +581,7 @@ function MemberView({
         <StatCard label="Games played" value={String(chess?.games?.length ?? 0)} hint="Most recent 25" icon={Sparkles} />
       </div>
 
-      <div className="mt-6">
+      <div className="grid lg:grid-cols-2 gap-4 mt-6">
         <UpcomingList
           title="Up next"
           icon={BookOpen}
@@ -588,14 +589,42 @@ function MemberView({
           tournaments={myTournaments}
           emptyLabel="No upcoming classes or tournaments yet — browse what's on."
         />
+
+        <Card className="p-6">
+          <div className="flex items-center gap-2 mb-3">
+            <Trophy className="h-4 w-4 text-primary/70" />
+            <h3 className="font-display text-xl">Recent games</h3>
+          </div>
+          {recentGames.length === 0 ? (
+            <p className="text-sm text-muted-foreground">No games yet — play a rated game on Hamduk Chess to see it here.</p>
+          ) : (
+            <ul className="space-y-2">
+              {recentGames.map((g) => (
+                <li key={g.game_id} className="flex items-center justify-between rounded-md bg-secondary/40 px-3 py-2 text-sm">
+                  <span>
+                    {g.my_color === "white" ? g.black : g.white}
+                    <span className="text-muted-foreground"> · {g.variant} {g.time_control}</span>
+                  </span>
+                  <Badge variant={g.my_result === "win" ? "default" : g.my_result === "loss" ? "secondary" : "outline"}>
+                    {g.my_result ?? "—"}
+                  </Badge>
+                </li>
+              ))}
+            </ul>
+          )}
+          <div className="mt-4">
+            <Link to="/chess"><Button variant="secondary" size="sm">View all games</Button></Link>
+          </div>
+        </Card>
       </div>
 
       <Card className="p-6 mt-6">
-        <h3 className="font-display text-xl mb-2">Welcome to the club</h3>
-        <p className="text-sm text-muted-foreground">Classes, tournaments, casual play, and puzzles roll out in the next phases. Your membership keeps everything in one place.</p>
-        <div className="mt-4 flex gap-2">
+        <h3 className="font-display text-xl mb-2">Keep going</h3>
+        <p className="text-sm text-muted-foreground">Browse classes, enter a tournament, or find a tutor from the coaching team.</p>
+        <div className="mt-4 flex gap-2 flex-wrap">
           <Link to="/classes"><Button variant="secondary" size="sm">Browse classes</Button></Link>
           <Link to="/tournaments"><Button variant="secondary" size="sm">Upcoming tournaments</Button></Link>
+          <Link to="/tutors"><Button variant="secondary" size="sm">Find a tutor</Button></Link>
         </div>
       </Card>
     </>

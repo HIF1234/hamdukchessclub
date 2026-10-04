@@ -78,15 +78,29 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       queryClient.invalidateQueries();
     });
 
-    // THEN check existing session
-    supabase.auth.getSession().then(({ data }) => {
-      setSession(data.session);
-      if (data.session?.user) {
-        void loadProfile(data.session.user.id).finally(() => setLoading(false));
-      } else {
+    // THEN check existing session. getSession() can reject outright -- not just resolve with
+    // a null session -- when localStorage holds a stale/invalid refresh token (e.g. from a
+    // previous login whose session was revoked elsewhere). Without this catch, that rejection
+    // left `loading` stuck at true forever: the _authenticated guard's "still loading" branch
+    // never falls through to its "not authenticated -> /login" branch, so the page just hangs
+    // instead of redirecting -- this is the bug where logging out, or opening a stale link,
+    // got stuck instead of bouncing to /login.
+    supabase.auth
+      .getSession()
+      .then(({ data }) => {
+        setSession(data.session);
+        if (data.session?.user) {
+          void loadProfile(data.session.user.id).finally(() => setLoading(false));
+        } else {
+          setLoading(false);
+        }
+      })
+      .catch(() => {
+        setSession(null);
+        setProfile(null);
+        setRoles([]);
         setLoading(false);
-      }
-    });
+      });
 
     return () => subscription.unsubscribe();
     // eslint-disable-next-line react-hooks/exhaustive-deps

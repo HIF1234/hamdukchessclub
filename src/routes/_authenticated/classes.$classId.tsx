@@ -6,7 +6,7 @@ import { toast } from "sonner";
 import { DashboardShell } from "@/components/dashboard/dashboard-shell";
 import {
   getClassDetail, updateClassNotes, updateMeetingUrl,
-  addClassResource, removeClassResource, setAttendance,
+  addClassResource, removeClassResource, setAttendance, getClassProgress,
 } from "@/lib/classes/classes.functions";
 import { enrollInClass, unenrollFromClass, updateClass, cancelClass } from "@/lib/admin/management.functions";
 import { Card } from "@/components/ui/card";
@@ -18,7 +18,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { ArrowLeft, ExternalLink, Trash2, Video, BookOpen, Users, FileText, Puzzle } from "lucide-react";
+import { ArrowLeft, ExternalLink, Trash2, Video, BookOpen, Users, FileText, Puzzle, TrendingUp } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/classes/$classId")({
   head: () => ({ meta: [{ title: "Class — Hamduk Chess Club" }] }),
@@ -79,6 +79,7 @@ function ClassDetailPage() {
               <TabsTrigger value="live"><Puzzle className="h-4 w-4 mr-1" />Live classroom</TabsTrigger>
               <TabsTrigger value="resources"><FileText className="h-4 w-4 mr-1" />Resources</TabsTrigger>
               {data.can_manage && <TabsTrigger value="attendance"><Users className="h-4 w-4 mr-1" />Attendance</TabsTrigger>}
+              {data.can_manage && <TabsTrigger value="progress"><TrendingUp className="h-4 w-4 mr-1" />Progress</TabsTrigger>}
               <TabsTrigger value="notes">Notes</TabsTrigger>
             </TabsList>
 
@@ -117,6 +118,12 @@ function ClassDetailPage() {
                   participants={data.participants}
                   takenAt={data.class.attendance_taken_at}
                 />
+              </TabsContent>
+            )}
+
+            {data.can_manage && (
+              <TabsContent value="progress">
+                <ProgressPanel classId={classId} />
               </TabsContent>
             )}
 
@@ -319,6 +326,46 @@ function AttendancePanel({ classId, participants, takenAt }: {
                 />
                 Present
               </label>
+            </li>
+          ))}
+        </ul>
+      )}
+    </Card>
+  );
+}
+
+function ProgressPanel({ classId }: { classId: string }) {
+  const fetchProgress = useServerFn(getClassProgress);
+  const { data, isLoading, error } = useQuery({
+    queryKey: ["class-progress", classId],
+    queryFn: () => fetchProgress({ data: { class_id: classId } }),
+  });
+
+  return (
+    <Card className="p-6 space-y-5">
+      <div>
+        <h2 className="font-display text-2xl">Progress</h2>
+        <p className="text-sm text-muted-foreground mt-1">
+          Each student's lessons and Course path levels completed on the main app.
+        </p>
+      </div>
+      {isLoading && <p className="text-muted-foreground">Loading…</p>}
+      {error && <p className="text-destructive">{(error as Error).message}</p>}
+      {data && data.students.length === 0 && (
+        <p className="text-sm text-muted-foreground">No enrolled participants yet.</p>
+      )}
+      {data && data.students.length > 0 && (
+        <ul className="divide-y divide-border/40">
+          {data.students.map((s) => (
+            <li key={s.id} className="flex items-center justify-between py-3">
+              <div>
+                <div className="font-medium">{s.full_name}</div>
+                <div className="text-xs text-muted-foreground">{s.email}</div>
+              </div>
+              <div className="flex gap-4 text-sm text-muted-foreground">
+                <span>{s.tutorials_completed} lessons</span>
+                <span>{s.course_units_completed} / 6 course levels</span>
+              </div>
             </li>
           ))}
         </ul>
